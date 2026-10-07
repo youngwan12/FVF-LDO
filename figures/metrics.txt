@@ -1,0 +1,60 @@
+[Max load]  light-load VOUT = 802.2 mV
+  ILOAD=   10 mA  VOUT(4.99us)=802.1 mV  dV_ss=0.1 mV  undershoot=2.7 mV
+  ILOAD=   20 mA  VOUT(4.99us)=802.1 mV  dV_ss=0.1 mV  undershoot=3.7 mV
+  ILOAD=   30 mA  VOUT(4.99us)=802.1 mV  dV_ss=0.1 mV  undershoot=5.2 mV
+  ILOAD=   40 mA  VOUT(4.99us)=802.0 mV  dV_ss=0.2 mV  undershoot=6.7 mV
+  ILOAD=   50 mA  VOUT(4.99us)=802.0 mV  dV_ss=0.2 mV  undershoot=8.1 mV
+  ILOAD=   60 mA  VOUT(4.99us)=802.0 mV  dV_ss=0.2 mV  undershoot=9.5 mV
+  ILOAD=   70 mA  VOUT(4.99us)=802.0 mV  dV_ss=0.2 mV  undershoot=10.7 mV
+  ILOAD=   80 mA  VOUT(4.99us)=802.0 mV  dV_ss=0.2 mV  undershoot=11.8 mV
+  ILOAD=   90 mA  VOUT(4.99us)=801.9 mV  dV_ss=0.3 mV  undershoot=12.9 mV
+  ILOAD=  100 mA  VOUT(4.99us)=801.9 mV  dV_ss=0.3 mV  undershoot=13.9 mV
+  ILOAD=  110 mA  VOUT(4.99us)=801.9 mV  dV_ss=0.3 mV  undershoot=15.1 mV
+  ILOAD=  120 mA  VOUT(4.99us)=801.8 mV  dV_ss=0.4 mV  undershoot=16.1 mV
+  ILOAD=  130 mA  VOUT(4.99us)=801.7 mV  dV_ss=0.5 mV  undershoot=17.1 mV
+  ILOAD=  140 mA  VOUT(4.99us)=801.5 mV  dV_ss=0.7 mV  undershoot=18.0 mV
+  ILOAD=  150 mA  VOUT(4.99us)=800.8 mV  dV_ss=1.4 mV  undershoot=18.9 mV
+[Line regulation]  (regulated: |VOUT - plateau| < 2 mV, LNR = fit slope)
+  VREF=700 mV  VOUT=702.1 mV  VIN range 0.85-1.13 V  dropout=148 mV  LNR=-3.04 mV/V
+  VREF=750 mV  VOUT=751.9 mV  VIN range 0.91-1.20 V  dropout=158 mV  LNR=-1.07 mV/V
+  VREF=800 mV  VOUT=801.9 mV  VIN range 0.97-1.20 V  dropout=168 mV  LNR=-1.60 mV/V
+  VREF=850 mV  VOUT=851.9 mV  VIN range 1.02-1.20 V  dropout=168 mV  LNR=-0.75 mV/V
+  VREF=900 mV  VOUT=901.9 mV  VIN range 1.07-1.20 V  dropout=168 mV  LNR=1.30 mV/V
+[Load regulation]  VOUT spread over sweep per VREF (mV): 0.00, 0.00, 0.00, 0.00, 0.00  <- sweep shows no load dependence; check netlist
+[PSR]
+  100uA: DC -41.9 dB, 1e+03 Hz: -41.9 dB, 1e+06 Hz: -14.6 dB, 1e+07 Hz: -2.1 dB, worst 9.0 dB @ 3.98e+08 Hz
+  50mA: DC -57.8 dB, 1e+03 Hz: -57.1 dB, 1e+06 Hz: -7.0 dB, 1e+07 Hz: -0.9 dB, worst 2.1 dB @ 3.47e+08 Hz
+[Transient]  ILOAD 150 uA <-> 10 mA
+  VOUT=0.8 V: undershoot 2.7 mV, overshoot 4.9 mV
+  VOUT=0.9 V: undershoot 2.9 mV, overshoot 5.3 mV
+[Current efficiency]
+  ILOAD=   0.150 mA  IQ=269.3 uA  eta=35.77 %
+  ILOAD=  10.000 mA  IQ=264.2 uA  eta=97.43 %
+  ILOAD=  20.000 mA  IQ=262.7 uA  eta=98.70 %
+  ILOAD=  30.000 mA  IQ=261.5 uA  eta=99.14 %
+  ILOAD=  40.000 mA  IQ=260.5 uA  eta=99.35 %
+  ILOAD=  50.000 mA  IQ=259.6 uA  eta=99.48 %
+  ILOAD=  60.000 mA  IQ=258.6 uA  eta=99.57 %
+  ILOAD=  70.000 mA  IQ=257.7 uA  eta=99.63 %
+  ILOAD=  80.000 mA  IQ=256.7 uA  eta=99.68 %
+  ILOAD=  90.000 mA  IQ=255.6 uA  eta=99.72 %
+  ILOAD= 100.000 mA  IQ=254.2 uA  eta=99.75 %
+  ILOAD= 110.000 mA  IQ=252.5 uA  eta=99.77 %
+  ILOAD= 120.000 mA  IQ=250.2 uA  eta=99.79 %
+  ILOAD= 130.000 mA  IQ=246.7 uA  eta=99.81 %
+  ILOAD= 140.000 mA  IQ=240.8 uA  eta=99.83 %
+  ILOAD= 150.000 mA  IQ=227.7 uA  eta=99.85 %
+[Stability: stb1.csv]  (PM read as lstb phase at 0 dB crossing)
+  ILOAD=100 uA  DC gain=58.5 dB  UGF=21.5 MHz  PM=36.2 deg
+  ILOAD=10.1 mA  DC gain=56.6 dB  UGF=17.2 MHz  PM=36.9 deg
+  ILOAD=20.1 mA  DC gain=56.1 dB  UGF=16.1 MHz  PM=37.1 deg
+  ILOAD=30.1 mA  DC gain=55.7 dB  UGF=15.4 MHz  PM=37.1 deg
+  ILOAD=40.1 mA  DC gain=55.4 dB  UGF=14.8 MHz  PM=37.2 deg
+  ILOAD=50.1 mA  DC gain=55.0 dB  UGF=14.2 MHz  PM=37.3 deg
+[Stability: f_stb1.csv]  (PM read as lstb phase at 0 dB crossing)
+  ILOAD=100 uA  DC gain=36.4 dB  UGF=261.4 MHz  PM=44.7 deg
+  ILOAD=10.1 mA  DC gain=40.4 dB  UGF=416.5 MHz  PM=87.2 deg
+  ILOAD=20.1 mA  DC gain=39.9 dB  UGF=382.8 MHz  PM=88.5 deg
+  ILOAD=30.1 mA  DC gain=39.0 dB  UGF=349.7 MHz  PM=89.1 deg
+  ILOAD=40.1 mA  DC gain=37.8 dB  UGF=316.1 MHz  PM=89.5 deg
+  ILOAD=50.1 mA  DC gain=36.5 dB  UGF=283.1 MHz  PM=89.9 deg

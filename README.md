@@ -17,5 +17,5 @@ Serif / DejaVu Serif when Times is not installed).
 | fig5_transient | tr1.csv | VOUT (0.8 V / 0.9 V) and ILOAD, 150 µA ↔ 10 mA |
 | fig6_transient_zoom | tr1.csv | zoom on rising (a) and falling (b) load steps |
 | fig7_current_efficiency | eff1.csv | Iq and current efficiency vs ILOAD |
-| fig8a_stability_overall_loop | stb1.csv | overall loop gain & phase vs ILOAD |
+| fig8a_stability_overall_loop | stb1.csv | overall loop gain & phase vs ILOAD (phase column was exported as 20·log10(\|phase\|); the script undoes it) |
 | fig8b_stability_fast_loop | f_stb1.csv | fast (FVF) loop gain & phase vs ILOAD |

@@ -45,12 +45,12 @@
   ILOAD= 140.000 mA  IQ=240.8 uA  eta=99.83 %
   ILOAD= 150.000 mA  IQ=227.7 uA  eta=99.85 %
 [Stability: stb1.csv]  (PM read as lstb phase at 0 dB crossing)
-  ILOAD=100 uA  DC gain=58.5 dB  UGF=21.5 MHz  PM=36.2 deg
-  ILOAD=10.1 mA  DC gain=56.6 dB  UGF=17.2 MHz  PM=36.9 deg
-  ILOAD=20.1 mA  DC gain=56.1 dB  UGF=16.1 MHz  PM=37.1 deg
-  ILOAD=30.1 mA  DC gain=55.7 dB  UGF=15.4 MHz  PM=37.1 deg
-  ILOAD=40.1 mA  DC gain=55.4 dB  UGF=14.8 MHz  PM=37.2 deg
-  ILOAD=50.1 mA  DC gain=55.0 dB  UGF=14.2 MHz  PM=37.3 deg
+  ILOAD=100 uA  DC gain=58.5 dB  UGF=21.5 MHz  PM=64.8 deg
+  ILOAD=10.1 mA  DC gain=56.6 dB  UGF=17.2 MHz  PM=70.0 deg
+  ILOAD=20.1 mA  DC gain=56.1 dB  UGF=16.1 MHz  PM=71.3 deg
+  ILOAD=30.1 mA  DC gain=55.7 dB  UGF=15.4 MHz  PM=72.0 deg
+  ILOAD=40.1 mA  DC gain=55.4 dB  UGF=14.8 MHz  PM=72.6 deg
+  ILOAD=50.1 mA  DC gain=55.0 dB  UGF=14.2 MHz  PM=73.1 deg
 [Stability: f_stb1.csv]  (PM read as lstb phase at 0 dB crossing)
   ILOAD=100 uA  DC gain=36.4 dB  UGF=261.4 MHz  PM=44.7 deg
   ILOAD=10.1 mA  DC gain=40.4 dB  UGF=416.5 MHz  PM=87.2 deg

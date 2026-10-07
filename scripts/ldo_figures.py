@@ -318,11 +318,31 @@ def fig_efficiency():
 
 
 # ---------------------------------------------------------- 7. Stability ----
-def fig_stability(fname, outname, title):
+def undo_phase_db(x):
+    """Recover lstb phase from a column exported as 20*log10(|phase|).
+
+    Sign is lost in such an export: phase is positive down to the zero crossing
+    (minimum of |phase|); after it, each point takes whichever of -|p| or
+    -(360-|p|) keeps the curve monotonically falling (unwrapped below -180 deg).
+    """
+    m = 10 ** (x / 20)
+    k0 = int(np.argmin(m))
+    ph = m.copy()
+    prev = 0.0
+    for k in range(k0, len(m)):
+        cands = [-m[k], -(360 - m[k])]
+        ok = [c for c in cands if c <= prev + 1.0] or cands
+        ph[k] = prev = min(ok, key=lambda c: abs(c - prev))
+    return ph
+
+
+def fig_stability(fname, outname, title, phase_db=False):
     cols, d = load(fname)
     f = d[:, 0]
     n = (d.shape[1] - 1) // 2
     G, P = d[:, 1:1 + n], d[:, 1 + n:]
+    if phase_db:
+        P = np.column_stack([undo_phase_db(p) for p in P.T])
     il = [param(c) for c in cols[1:1 + n]]
     colors = ordinal(n)
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(COL_W, 3.2), sharex=True,
@@ -360,6 +380,7 @@ if __name__ == "__main__":
     fig_psr()
     fig_transient()
     fig_efficiency()
-    fig_stability("stb1.csv", "fig8a_stability_overall_loop", None)
+    # stb1.csv phase columns were exported as dB of the phase -> undo it
+    fig_stability("stb1.csv", "fig8a_stability_overall_loop", None, phase_db=True)
     fig_stability("f_stb1.csv", "fig8b_stability_fast_loop", None)
     (OUT / "metrics.txt").write_text("\n".join(metrics) + "\n")

@@ -14,19 +14,25 @@
   ILOAD=  130 mA  VOUT(4.99us)=801.7 mV  dV_ss=0.5 mV  undershoot=17.1 mV
   ILOAD=  140 mA  VOUT(4.99us)=801.5 mV  dV_ss=0.7 mV  undershoot=18.0 mV
   ILOAD=  150 mA  VOUT(4.99us)=800.8 mV  dV_ss=1.4 mV  undershoot=18.9 mV
-[Line regulation]  (regulated: |VOUT - plateau| < 2 mV, LNR = fit slope)
-  VREF=700 mV  VOUT=702.1 mV  VIN range 0.85-1.13 V  dropout=148 mV  LNR=-3.04 mV/V
-  VREF=750 mV  VOUT=751.9 mV  VIN range 0.91-1.20 V  dropout=158 mV  LNR=-1.07 mV/V
-  VREF=800 mV  VOUT=801.9 mV  VIN range 0.97-1.20 V  dropout=168 mV  LNR=-1.60 mV/V
-  VREF=850 mV  VOUT=851.9 mV  VIN range 1.02-1.20 V  dropout=168 mV  LNR=-0.75 mV/V
-  VREF=900 mV  VOUT=901.9 mV  VIN range 1.07-1.20 V  dropout=168 mV  LNR=1.30 mV/V
-[Load regulation]  VOUT spread over sweep per VREF (mV): 0.00, 0.00, 0.00, 0.00, 0.00  <- sweep shows no load dependence; check netlist
+[Line regulation]  (regulated: |VOUT - plateau| < 2 mV, LNR = dVOUT/dVIN over it)
+  VREF=700 mV  VOUT=702.1 mV  VIN range 0.85-1.13 V  dropout=148 mV  LNR=2.38 mV/V
+  VREF=750 mV  VOUT=751.9 mV  VIN range 0.91-1.20 V  dropout=158 mV  LNR=1.17 mV/V
+  VREF=800 mV  VOUT=801.9 mV  VIN range 0.97-1.20 V  dropout=168 mV  LNR=1.90 mV/V
+  VREF=850 mV  VOUT=851.9 mV  VIN range 1.02-1.20 V  dropout=168 mV  LNR=2.04 mV/V
+  VREF=900 mV  VOUT=901.9 mV  VIN range 1.07-1.20 V  dropout=168 mV  LNR=2.45 mV/V
+[Load regulation]  LDR = |dVOUT| / dILOAD over the sweep
+  VREF=700 mV  VOUT=733.0 mV  LDR=0.0000 mV/mA
+  VREF=750 mV  VOUT=752.1 mV  LDR=0.0000 mV/mA
+  VREF=800 mV  VOUT=802.2 mV  LDR=0.0000 mV/mA
+  VREF=850 mV  VOUT=850.2 mV  LDR=0.0000 mV/mA
+  VREF=900 mV  VOUT=853.2 mV  LDR=0.0000 mV/mA
+  !! VOUT does not change over the sweep -> load current not swept; re-simulate
 [PSR]
-  100uA: DC -41.9 dB, 1e+03 Hz: -41.9 dB, 1e+06 Hz: -14.6 dB, 1e+07 Hz: -2.1 dB, worst 9.0 dB @ 3.98e+08 Hz
-  50mA: DC -57.8 dB, 1e+03 Hz: -57.1 dB, 1e+06 Hz: -7.0 dB, 1e+07 Hz: -0.9 dB, worst 2.1 dB @ 3.47e+08 Hz
-[Transient]  ILOAD 150 uA <-> 10 mA
-  VOUT=0.8 V: undershoot 2.7 mV, overshoot 4.9 mV
-  VOUT=0.9 V: undershoot 2.9 mV, overshoot 5.3 mV
+  ILOAD=100 uA: DC -41.9 dB, 1kHz: -41.9 dB, 100kHz: -33.6 dB, 1MHz: -14.6 dB, 10MHz: -2.1 dB, worst 9.0 dB @ 398.1MHz
+  ILOAD=50 mA: DC -57.8 dB, 1kHz: -57.1 dB, 100kHz: -25.8 dB, 1MHz: -7.0 dB, 10MHz: -0.9 dB, worst 2.1 dB @ 346.7MHz
+[Transient]  ILOAD 150 uA <-> 10 mA, edge 500 ns
+  VOUT=0.80 V: undershoot 2.7 mV, Ts 500 ns | overshoot 4.9 mV, Ts 582 ns  (Ts: +-0.5 mV)
+  VOUT=0.90 V: undershoot 2.9 mV, Ts 514 ns | overshoot 5.3 mV, Ts 598 ns  (Ts: +-0.5 mV)
 [Current efficiency]
   ILOAD=   0.150 mA  IQ=269.3 uA  eta=35.77 %
   ILOAD=  10.000 mA  IQ=264.2 uA  eta=97.43 %

@@ -8,7 +8,7 @@
 .include './fvf_yw_fb_3.ckt'
 
 .option post=1 accurate=1 runlvl=6
-.option measdgt=8 dcon=1 dccap
+.option dcon=1 dccap
 .option probe
 
 *---------------------------------------------------------------- params --
@@ -37,15 +37,12 @@ rlstb           OUT             OUT1    0
 
 .probe v(out) i(vvdd) i(vvss) i(iload)
 
-*----------------------------------------------------------- measurements --
-* (results per VREF in the .ms0 file)
-.meas dc vout_lo  find v(out)  at=100u
-.meas dc vout_hi  find v(out)  at=100m
-.meas dc ldreg    param='(vout_lo-vout_hi)/(100m-100u)'    $ [V/A] = [mV/mA]
-.meas dc imax     when v(out)='0.99*vr' fall=1             $ max load (VOUT < 99% VREF)
-.meas dc iq_lo    find i(vvss) at=100u
-.meas dc iq_hi    find i(vvss) at=100m
-.meas dc ivdd_hi  find i(vvdd) at=100m
+*----------------------------------------------------------------- export --
+* No .meas needed - scripts/ldo_figures.py computes everything from CSV.
+* WaveView export (format table, CSV), X axis = ILOAD:
+*   data/loadR1.csv : v(out)  for all vr
+*   data/iq1.csv    : i(vvss) for all vr
+* -> load regulation [mV/mA], ILOAD,max (VOUT < 0.99*VREF), IQ, current efficiency
 
 *--------------------------------------------------------- transient (ref) --
 * For the load-step transient use a separate deck with:

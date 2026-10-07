@@ -232,26 +232,52 @@ def fig_line_reg():
 
 
 # ------------------------------------------------- 3. Load regulation ----
+def load_reg_metrics(x, v, vr, i_lo=100e-6, i_hi=100e-3):
+    """From a DC sweep VOUT(ILOAD): VOUT at i_lo / i_hi, LDR [mV/mA], ILOAD,max.
+
+    ILOAD,max = first load where VOUT falls below 0.99*VREF (log-interpolated);
+    LDR is taken between i_lo and min(i_hi, ILOAD,max).
+    """
+    lx = np.log10(x)
+    below = np.where(v < 0.99 * vr)[0]
+    if below.size and below[0] > 0:
+        k = below[0]
+        imax = 10 ** np.interp(0.99 * vr, [v[k], v[k - 1]], [lx[k], lx[k - 1]])
+    else:
+        imax = np.nan if below.size else np.inf          # nan: never regulates
+    hi = min(i_hi, imax) if np.isfinite(imax) else i_hi
+    v_lo = np.interp(np.log10(i_lo), lx, v)
+    v_hi = np.interp(np.log10(hi), lx, v)
+    ldr = (v_lo - v_hi) / (hi - i_lo)                    # V/A == mV/mA
+    return v_lo, v_hi, hi, ldr, imax
+
+
 def fig_load_reg():
     cols, d = load("loadR1.csv")
     x, V = d[:, 0], d[:, 1:]
     vref = [param(c) for c in cols[1:]]
     fig, ax = plt.subplots(figsize=(COL_W, 2.5))
     invalid = np.ptp(V, axis=0).max() < 1e-5
-    log("[Load regulation]  LDR = |dVOUT| / dILOAD over the sweep")
+    log("[Load regulation]  LDR = (VOUT(100uA) - VOUT(I_hi)) / (I_hi - 100uA), "
+        "I_hi = min(100 mA, ILOAD,max);  ILOAD,max: VOUT < 0.99*VREF")
     for k, (vr, v) in enumerate(zip(vref, V.T)):
         ax.semilogx(x * 1e3, v, color=SER[k], marker=MRK[k], markevery=6, mfc="white",
                     label=f"{vr:.2f} V")
-        ldr = abs(v[-1] - v[0]) / ((x[-1] - x[0]) * 1e3) * 1e3
+        v_lo, v_hi, hi, ldr, imax = load_reg_metrics(x, v, vr)
         if not invalid:
-            ax.text(x[-1] * 1e3 * 0.8, v[-1] + 0.008, f"{ldr:.3f} mV/mA", ha="right",
+            ax.text(x[-1] * 1e3 * 0.8, v_lo + 0.008, f"{ldr:.3f} mV/mA", ha="right",
                     va="bottom", fontsize=6.5)
-        log("  VREF=%3.0f mV  VOUT=%.1f mV  LDR=%.4f mV/mA" % (vr * 1e3, v[0] * 1e3, ldr))
+            if np.isfinite(imax):
+                ax.plot(imax * 1e3, 0.99 * vr, marker="x", color=INK, ms=4, zorder=5)
+        im = ("%.1f mA" % (imax * 1e3)) if np.isfinite(imax) else \
+            (">%.0f mA (sweep end)" % (x[-1] * 1e3) if np.isinf(imax) else "not regulating")
+        log("  VREF=%3.0f mV  VOUT(100uA)=%.2f mV  VOUT(%.0fmA)=%.2f mV  LDR=%.4f mV/mA  ILOAD,max=%s"
+            % (vr * 1e3, v_lo * 1e3, hi * 1e3, v_hi * 1e3, ldr, im))
     log_axis(ax)
     ax.set_xlabel("Load Current [mA]")
     ax.set_ylabel("Output Voltage [V]")
     ax.set_xlim(x[0] * 1e3, x[-1] * 1e3)
-    ax.set_ylim(0.65, 0.95)
+    ax.set_ylim(0.65, 1.0)
     ax.legend(title=r"$V_\mathrm{REF}$", title_fontsize=7, loc="upper left", ncol=3,
               columnspacing=0.8, handlelength=1.6)
     if invalid:
@@ -259,6 +285,9 @@ def fig_load_reg():
                 transform=ax.transAxes, ha="center", va="center", color=WARN,
                 fontsize=9, fontweight="bold", alpha=0.85)
         log("  !! VOUT does not change over the sweep -> load current not swept; re-simulate")
+    else:
+        ax.text(0.02, 0.04, r"$\times$: $I_\mathrm{LOAD,max}$ ($V_\mathrm{OUT}$ = 0.99$V_\mathrm{REF}$)",
+                transform=ax.transAxes, fontsize=6.5)
     save(fig, "fig3_load_regulation")
 
 
@@ -401,6 +430,8 @@ def fig_transient():
 
 # ----------------------------------------------- 6. Current efficiency ----
 def fig_efficiency():
+    if (DATA / "iq1.csv").exists():
+        return fig_efficiency_dc()
     cols, d = load("eff1.csv")
     t, I = d[:, 0], d[:, 1:]
     il = np.array([param(c) for c in cols[1:]])
@@ -430,9 +461,48 @@ def fig_efficiency():
             bbox=dict(boxstyle="square,pad=0.3", fc="white", ec=INK, lw=0.6))
     ax.legend(loc="lower right")
     save(fig, "fig7_current_efficiency")
-    log("[Current efficiency]")
-    for a, b, e in zip(x, q, eta):
-        log("  ILOAD=%8.3f mA  IQ=%.1f uA  eta=%.2f %%" % (a * 1e3, b * 1e6, e))
+    log("[Current efficiency]  (transient data eff1.csv)")
+    for a_, b_, e in zip(x, q, eta):
+        log("  ILOAD=%8.3f mA  IQ=%.1f uA  eta=%.2f %%" % (a_ * 1e3, b_ * 1e6, e))
+
+
+def fig_efficiency_dc():
+    """Current efficiency from the DC sweep: iq1.csv = i(vvss) vs ILOAD per VREF."""
+    cols, d = load("iq1.csv")
+    x, Q = d[:, 0], np.abs(d[:, 1:])
+    vref = [param(c) for c in cols[1:]]
+    # stop each curve where the LDO leaves regulation (from loadR1.csv, same sweep)
+    lc, ld = load("loadR1.csv")
+    imaxs = {}
+    for c, v in zip(lc[1:], ld[:, 1:].T):
+        imaxs[round(param(c), 4)] = load_reg_metrics(ld[:, 0], v, param(c))[4]
+    fig, ax = plt.subplots(figsize=(COL_W, 2.4))
+    log("[Current efficiency]  (DC sweep iq1.csv, eta = IL/(IL+IQ), up to ILOAD,max)")
+    best = (0, 0, 0)
+    for k, (vr, q) in enumerate(zip(vref, Q.T)):
+        im = imaxs.get(round(vr, 4), np.inf)
+        m = x <= (im if np.isfinite(im) else x[-1])
+        eta = x / (x + q) * 100
+        ax.semilogx(x[m] * 1e3, eta[m], color=SER[k], marker=MRK[k], markevery=6, mfc="white",
+                    label=f"{vr:.2f} V")
+        if m.any():
+            j = np.argmax(np.where(m, eta, -1))
+            best = max(best, (eta[j], x[j], vr))
+            log("  VREF=%3.0f mV  IQ(100uA)=%.1f uA  IQ(100mA)=%.1f uA  peak eta=%.2f %% @ %.1f mA"
+                % (vr * 1e3, np.interp(-4, np.log10(x), q) * 1e6,
+                   np.interp(-1, np.log10(x), q) * 1e6, eta[j], x[j] * 1e3))
+    log_axis(ax)
+    ax.set_xlim(x[0] * 1e3, x[-1] * 1e3)
+    ax.set_ylim(0, 102)
+    ax.set_xlabel("Load Current [mA]")
+    ax.set_ylabel("Current Efficiency [%]")
+    ax.legend(title=r"$V_\mathrm{REF}$", title_fontsize=7, loc="lower right", ncol=2,
+              columnspacing=0.8, handlelength=1.6)
+    ax.text(0.03, 0.95, f"Peak Efficiency = {best[0]:.2f}%\n"
+            rf"@ $I_\mathrm{{LOAD}}$ = {best[1]*1e3:.0f} mA",
+            transform=ax.transAxes, va="top", fontsize=7,
+            bbox=dict(boxstyle="square,pad=0.3", fc="white", ec=INK, lw=0.6))
+    save(fig, "fig7_current_efficiency")
 
 
 # ---------------------------------------------------------- 7. Stability ----

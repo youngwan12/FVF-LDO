@@ -1,12 +1,13 @@
 # FVF LDO – paper figures
 
 `python scripts/ldo_figures.py` reads the WaveView CSV exports in `data/` and writes
-IEEE single-column (3.5 in) figures to `figures/` as PDF (vector, embedded fonts) and
+IEEE single-column (3.5 in; fig6 double-column 7.16 in) figures to `figures/` as PDF (vector, embedded fonts) and
 PNG (600 dpi). Extracted numbers (undershoot, dropout, PSR, Iq, UGF/PM …) go to
 `figures/metrics.txt`.
 
-Requires `numpy` and `matplotlib`. Font: Times New Roman (falls back to Liberation
-Serif / DejaVu Serif when Times is not installed).
+Requires `numpy` and `matplotlib`. Font: bold Arial, as in the JSSC reference figures
+(falls back to Liberation Sans, with a warning, when Arial is not installed).
+All computed values are also written to `figures/summary.json`.
 
 | Figure | Source | Content |
 |---|---|---|

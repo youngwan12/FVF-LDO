@@ -1,139 +1,177 @@
 {
  "max_load": {
   "v_light_mV": 802.2,
+  "imax_mA": 140.0,
+  "criterion_mV": 1.0,
+  "edge_ns": 500,
   "rows": [
    {
     "iload_mA": 10.0,
     "vout_ss_mV": 802.1,
-    "dv_ss_mV": 0.09999999999998899,
-    "undershoot_mV": 2.7000000000000357
+    "dv_ss_mV": 0.1,
+    "undershoot_mV": 2.7,
+    "overshoot_mV": 4.9
    },
    {
     "iload_mA": 20.0,
     "vout_ss_mV": 802.1,
-    "dv_ss_mV": 0.09999999999998899,
-    "undershoot_mV": 3.7000000000000366
+    "dv_ss_mV": 0.1,
+    "undershoot_mV": 3.7,
+    "overshoot_mV": 7.6
    },
    {
     "iload_mA": 30.0,
     "vout_ss_mV": 802.1,
-    "dv_ss_mV": 0.09999999999998899,
-    "undershoot_mV": 5.199999999999982
+    "dv_ss_mV": 0.1,
+    "undershoot_mV": 5.2,
+    "overshoot_mV": 9.8
    },
    {
     "iload_mA": 40.0,
     "vout_ss_mV": 802.0,
-    "dv_ss_mV": 0.19999999999997797,
-    "undershoot_mV": 6.700000000000039
+    "dv_ss_mV": 0.2,
+    "undershoot_mV": 6.7,
+    "overshoot_mV": 11.6
    },
    {
     "iload_mA": 50.0,
     "vout_ss_mV": 802.0,
-    "dv_ss_mV": 0.19999999999997797,
-    "undershoot_mV": 8.099999999999996
+    "dv_ss_mV": 0.2,
+    "undershoot_mV": 8.1,
+    "overshoot_mV": 13.3
    },
    {
     "iload_mA": 60.0,
     "vout_ss_mV": 802.0,
-    "dv_ss_mV": 0.19999999999997797,
-    "undershoot_mV": 9.500000000000064
+    "dv_ss_mV": 0.2,
+    "undershoot_mV": 9.5,
+    "overshoot_mV": 14.8
    },
    {
     "iload_mA": 70.0,
     "vout_ss_mV": 802.0,
-    "dv_ss_mV": 0.19999999999997797,
-    "undershoot_mV": 10.700000000000042
+    "dv_ss_mV": 0.2,
+    "undershoot_mV": 10.7,
+    "overshoot_mV": 16.2
    },
    {
     "iload_mA": 80.0,
     "vout_ss_mV": 802.0,
-    "dv_ss_mV": 0.19999999999997797,
-    "undershoot_mV": 11.800000000000033
+    "dv_ss_mV": 0.2,
+    "undershoot_mV": 11.8,
+    "overshoot_mV": 17.6
    },
    {
     "iload_mA": 90.0,
     "vout_ss_mV": 801.9,
-    "dv_ss_mV": 0.300000000000078,
-    "undershoot_mV": 12.900000000000023
+    "dv_ss_mV": 0.3,
+    "undershoot_mV": 12.9,
+    "overshoot_mV": 18.9
    },
    {
     "iload_mA": 100.0,
     "vout_ss_mV": 801.9,
-    "dv_ss_mV": 0.300000000000078,
-    "undershoot_mV": 13.900000000000023
+    "dv_ss_mV": 0.3,
+    "undershoot_mV": 13.9,
+    "overshoot_mV": 20.2
    },
    {
     "iload_mA": 110.0,
     "vout_ss_mV": 801.9,
-    "dv_ss_mV": 0.300000000000078,
-    "undershoot_mV": 15.100000000000001
+    "dv_ss_mV": 0.3,
+    "undershoot_mV": 15.1,
+    "overshoot_mV": 21.4
    },
    {
     "iload_mA": 120.0,
     "vout_ss_mV": 801.8,
-    "dv_ss_mV": 0.40000000000006697,
-    "undershoot_mV": 16.1
+    "dv_ss_mV": 0.4,
+    "undershoot_mV": 16.1,
+    "overshoot_mV": 22.6
    },
    {
     "iload_mA": 130.0,
-    "vout_ss_mV": 801.6999999999999,
-    "dv_ss_mV": 0.500000000000056,
-    "undershoot_mV": 17.100000000000005
+    "vout_ss_mV": 801.7,
+    "dv_ss_mV": 0.5,
+    "undershoot_mV": 17.1,
+    "overshoot_mV": 24.0
    },
    {
     "iload_mA": 140.0,
     "vout_ss_mV": 801.5,
-    "dv_ss_mV": 0.7000000000000339,
-    "undershoot_mV": 18.000000000000014
+    "dv_ss_mV": 0.7,
+    "undershoot_mV": 18.0,
+    "overshoot_mV": 25.8
    },
    {
     "iload_mA": 150.0,
     "vout_ss_mV": 800.8,
-    "dv_ss_mV": 1.4000000000000679,
-    "undershoot_mV": 18.900000000000027
+    "dv_ss_mV": 1.4,
+    "undershoot_mV": 18.9,
+    "overshoot_mV": 32.2
    }
   ]
  },
  "line_reg": [
   {
-   "vref_V": 0.7000000000000001,
-   "vout_mV": 702.0999999999999,
-   "vin_lo_V": 0.85,
+   "vref_V": 0.7,
+   "vout_mV": 702.1,
+   "vin_min_V": 0.8425,
    "vin_hi_V": 1.13,
-   "dropout_mV": 147.90000000000003,
-   "lnr_mV_per_V": 2.3829059829066526
+   "dropout_mV": 140.0,
+   "lnr_mV_per_V": 2.4,
+   "fit_V": [
+    0.88,
+    1.13
+   ]
   },
   {
    "vref_V": 0.75,
    "vout_mV": 751.9,
-   "vin_lo_V": 0.91,
+   "vin_min_V": 0.9068,
    "vin_hi_V": 1.2,
-   "dropout_mV": 158.10000000000002,
-   "lnr_mV_per_V": 1.1692307692306143
+   "dropout_mV": 155.0,
+   "lnr_mV_per_V": 1.4,
+   "fit_V": [
+    0.94,
+    1.2
+   ]
   },
   {
    "vref_V": 0.8,
    "vout_mV": 801.9,
-   "vin_lo_V": 0.97,
+   "vin_min_V": 0.9618,
    "vin_hi_V": 1.2,
-   "dropout_mV": 168.10000000000002,
-   "lnr_mV_per_V": 1.8961038961041021
+   "dropout_mV": 160.0,
+   "lnr_mV_per_V": 1.9,
+   "fit_V": [
+    1.0,
+    1.2
+   ]
   },
   {
    "vref_V": 0.85,
    "vout_mV": 851.9,
-   "vin_lo_V": 1.02,
+   "vin_min_V": 1.016,
    "vin_hi_V": 1.2,
-   "dropout_mV": 168.10000000000002,
-   "lnr_mV_per_V": 2.0441176470573654
+   "dropout_mV": 164.0,
+   "lnr_mV_per_V": 2.0,
+   "fit_V": [
+    1.05,
+    1.2
+   ]
   },
   {
    "vref_V": 0.9,
-   "vout_mV": 901.9000000000001,
-   "vin_lo_V": 1.07,
+   "vout_mV": 901.9,
+   "vin_min_V": 1.068,
    "vin_hi_V": 1.2,
-   "dropout_mV": 168.10000000000002,
-   "lnr_mV_per_V": 2.4545454545449283
+   "dropout_mV": 166.0,
+   "lnr_mV_per_V": 2.5,
+   "fit_V": [
+    1.1,
+    1.2
+   ]
   }
  ],
  "load_reg": {
@@ -141,70 +179,79 @@
   "sweep_end_mA": 50.0,
   "rows": [
    {
-    "vref_V": 0.7000000000000001,
+    "vref_V": 0.7,
     "regulating": true,
-    "vout_mV": 702.02,
-    "imin_uA": 177.82999999999998,
-    "ldr_uV_per_mA": 2.040816326530387,
-    "i_lo_mA": 1.0,
-    "i_hi_mA": 50.0,
-    "imax_mA": null,
+    "vout_10mA_mV": 702.06,
     "vout_first_mV": 729.46,
-    "vout_last_mV": 702.02
+    "vout_last_mV": 702.02,
+    "imin_uA": 178.0,
+    "ldr_uV_per_mA": 1.9,
+    "ldr_range_mA": [
+     1.0,
+     50.0
+    ],
+    "below_99pct_from_mA": null,
+    "below_99pct": "never (sweep end)"
    },
    {
     "vref_V": 0.75,
     "regulating": true,
-    "vout_mV": 751.95,
-    "imin_uA": 10.0,
-    "ldr_uV_per_mA": 0.6122448979586631,
-    "i_lo_mA": 1.0,
-    "i_hi_mA": 50.0,
-    "imax_mA": null,
+    "vout_10mA_mV": 751.97,
     "vout_first_mV": 752.05,
-    "vout_last_mV": 751.95
+    "vout_last_mV": 751.95,
+    "imin_uA": 10.0,
+    "ldr_uV_per_mA": 0.66,
+    "ldr_range_mA": [
+     1.0,
+     50.0
+    ],
+    "below_99pct_from_mA": null,
+    "below_99pct": "never (sweep end)"
    },
    {
     "vref_V": 0.8,
     "regulating": true,
-    "vout_mV": 802.01,
+    "vout_10mA_mV": 802.1,
+    "vout_first_mV": 802.21,
+    "vout_last_mV": 802.01,
     "imin_uA": 10.0,
-    "ldr_uV_per_mA": 3.061224489795581,
-    "i_lo_mA": 1.0,
-    "i_hi_mA": 50.0,
-    "imax_mA": null,
-    "vout_first_mV": 802.2099999999999,
-    "vout_last_mV": 802.01
+    "ldr_uV_per_mA": 3.0,
+    "ldr_range_mA": [
+     1.0,
+     50.0
+    ],
+    "below_99pct_from_mA": null,
+    "below_99pct": "never (sweep end)"
    },
    {
     "vref_V": 0.85,
     "regulating": false,
-    "vout_mV": 840.0600000000001,
-    "imin_uA": 7943.3,
-    "ldr_uV_per_mA": -0.0,
-    "i_lo_mA": 7.943300000000001,
-    "i_hi_mA": 7.943299999999999,
-    "imax_mA": 7.943299999999999,
+    "vout_10mA_mV": 839.31,
     "vout_first_mV": 849.99,
-    "vout_last_mV": 831.7900000000001
+    "vout_last_mV": 831.79,
+    "imin_uA": null,
+    "ldr_uV_per_mA": null,
+    "ldr_range_mA": null,
+    "below_99pct_from_mA": 4.85,
+    "below_99pct": "4.85 mA"
    },
    {
     "vref_V": 0.9,
     "regulating": false,
-    "vout_mV": 840.28,
-    "imin_uA": 7943.3,
-    "ldr_uV_per_mA": -0.0,
-    "i_lo_mA": 7.943300000000001,
-    "i_hi_mA": 7.943299999999999,
-    "imax_mA": 7.943299999999999,
+    "vout_10mA_mV": 839.5,
     "vout_first_mV": 852.82,
-    "vout_last_mV": 831.8100000000001
+    "vout_last_mV": 831.81,
+    "imin_uA": null,
+    "ldr_uV_per_mA": null,
+    "ldr_range_mA": null,
+    "below_99pct_from_mA": null,
+    "below_99pct": "from the start"
    }
   ]
  },
  "psr": [
   {
-   "iload_mA": 0.09999999999999999,
+   "iload_mA": 0.1,
    "dc_dB": -41.88,
    "at_1kHz_dB": -41.87,
    "at_10kHz_dB": -41.64,
@@ -234,180 +281,186 @@
   "rows": [
    {
     "vout_V": 0.8022,
-    "undershoot_mV": 2.7000000000000357,
-    "ts_under_ns": 500.0,
-    "overshoot_mV": 4.9000000000000155,
-    "ts_over_ns": 581.9999999999999
+    "undershoot_mV": 2.7,
+    "ts_under_ns": 391.0,
+    "overshoot_mV": 4.9,
+    "ts_over_ns": 582.0
    },
    {
     "vout_V": 0.902,
-    "undershoot_mV": 2.9000000000000137,
-    "ts_under_ns": 514.0,
-    "overshoot_mV": 5.299999999999971,
-    "ts_over_ns": 597.9999999999999
+    "undershoot_mV": 2.9,
+    "ts_under_ns": 501.0,
+    "overshoot_mV": 5.3,
+    "ts_over_ns": 598.0
    }
   ]
  },
  "efficiency": {
-  "source": "eff1.csv (transient, 4.99 us after the step)",
+  "source": "eff1.csv (transient)",
+  "peak_pct": 99.828,
+  "peak_at_mA": 140.0,
+  "iq_range_uA": [
+   240.8,
+   269.3
+  ],
   "rows": [
    {
     "iload_mA": 0.15,
     "iq_uA": 269.3,
-    "eta_pct": 35.773908895778675
+    "eta_pct": 35.774
    },
    {
     "iload_mA": 10.0,
-    "iq_uA": 264.20000000000005,
-    "eta_pct": 97.42600494924105
+    "iq_uA": 264.2,
+    "eta_pct": 97.426
    },
    {
     "iload_mA": 20.0,
     "iq_uA": 262.7,
-    "eta_pct": 98.70352914468457
+    "eta_pct": 98.704
    },
    {
     "iload_mA": 30.0,
     "iq_uA": 261.5,
-    "eta_pct": 99.13586570394726
+    "eta_pct": 99.136
    },
    {
     "iload_mA": 40.0,
     "iq_uA": 260.5,
-    "eta_pct": 99.35296382310206
+    "eta_pct": 99.353
    },
    {
     "iload_mA": 50.0,
     "iq_uA": 259.6,
-    "eta_pct": 99.48348176268813
+    "eta_pct": 99.483
    },
    {
     "iload_mA": 60.0,
     "iq_uA": 258.6,
-    "eta_pct": 99.57084963805997
+    "eta_pct": 99.571
    },
    {
     "iload_mA": 70.0,
     "iq_uA": 257.7,
-    "eta_pct": 99.63320746338124
+    "eta_pct": 99.633
    },
    {
     "iload_mA": 80.0,
     "iq_uA": 256.7,
-    "eta_pct": 99.6801513144697
+    "eta_pct": 99.68
    },
    {
     "iload_mA": 90.0,
-    "iq_uA": 255.59999999999997,
-    "eta_pct": 99.71680427585657
+    "iq_uA": 255.6,
+    "eta_pct": 99.717
    },
    {
     "iload_mA": 100.0,
     "iq_uA": 254.2,
-    "eta_pct": 99.74644453798444
+    "eta_pct": 99.746
    },
    {
     "iload_mA": 110.0,
     "iq_uA": 252.5,
-    "eta_pct": 99.77098024988095
+    "eta_pct": 99.771
    },
    {
     "iload_mA": 120.0,
-    "iq_uA": 250.20000000000002,
-    "eta_pct": 99.79193381798949
+    "iq_uA": 250.2,
+    "eta_pct": 99.792
    },
    {
     "iload_mA": 130.0,
     "iq_uA": 246.7,
-    "eta_pct": 99.81059021073088
+    "eta_pct": 99.811
    },
    {
     "iload_mA": 140.0,
     "iq_uA": 240.8,
-    "eta_pct": 99.8282953320289
+    "eta_pct": 99.828
    },
    {
     "iload_mA": 150.0,
-    "iq_uA": 227.70000000000002,
-    "eta_pct": 99.8484300831338
+    "iq_uA": 227.7,
+    "eta_pct": 99.848
    }
   ]
  },
  "stability": {
   "fig8a_stability_overall_loop": [
    {
-    "iload_mA": 0.09999999999999999,
+    "iload_mA": 0.1,
     "dc_gain_dB": 58.46,
-    "ugf_MHz": 21.48210561359925,
-    "pm_deg": 64.77429892071196
+    "ugf_MHz": 21.48,
+    "pm_deg": 64.8
    },
    {
     "iload_mA": 10.1,
     "dc_gain_dB": 56.65,
-    "ugf_MHz": 17.186480089082956,
-    "pm_deg": 69.95946082019935
+    "ugf_MHz": 17.19,
+    "pm_deg": 70.0
    },
    {
-    "iload_mA": 20.100000000000005,
+    "iload_mA": 20.1,
     "dc_gain_dB": 56.12,
-    "ugf_MHz": 16.12249287939607,
-    "pm_deg": 71.26017897734546
+    "ugf_MHz": 16.12,
+    "pm_deg": 71.3
    },
    {
     "iload_mA": 30.1,
     "dc_gain_dB": 55.72,
-    "ugf_MHz": 15.370317666329518,
-    "pm_deg": 71.96824609698943
+    "ugf_MHz": 15.37,
+    "pm_deg": 72.0
    },
    {
     "iload_mA": 40.1,
     "dc_gain_dB": 55.37,
-    "ugf_MHz": 14.750919039600959,
-    "pm_deg": 72.55176431156079
+    "ugf_MHz": 14.75,
+    "pm_deg": 72.6
    },
    {
-    "iload_mA": 50.10000000000001,
+    "iload_mA": 50.1,
     "dc_gain_dB": 55.05,
-    "ugf_MHz": 14.200865916034532,
-    "pm_deg": 73.05096846001253
+    "ugf_MHz": 14.2,
+    "pm_deg": 73.1
    }
   ],
   "fig8b_stability_fast_loop": [
    {
-    "iload_mA": 0.09999999999999999,
+    "iload_mA": 0.1,
     "dc_gain_dB": 36.43,
-    "ugf_MHz": 261.42668893193564,
-    "pm_deg": 44.69809500877156
+    "ugf_MHz": 261.4,
+    "pm_deg": 44.7
    },
    {
     "iload_mA": 10.1,
     "dc_gain_dB": 40.37,
-    "ugf_MHz": 416.4826141148169,
-    "pm_deg": 87.2057506234414
+    "ugf_MHz": 416.5,
+    "pm_deg": 87.2
    },
    {
-    "iload_mA": 20.100000000000005,
+    "iload_mA": 20.1,
     "dc_gain_dB": 39.87,
-    "ugf_MHz": 382.83543115934606,
-    "pm_deg": 88.49015195441368
+    "ugf_MHz": 382.8,
+    "pm_deg": 88.5
    },
    {
     "iload_mA": 30.1,
     "dc_gain_dB": 38.99,
-    "ugf_MHz": 349.7396037615791,
-    "pm_deg": 89.0867746288799
+    "ugf_MHz": 349.7,
+    "pm_deg": 89.1
    },
    {
     "iload_mA": 40.1,
     "dc_gain_dB": 37.82,
-    "ugf_MHz": 316.1205934991381,
-    "pm_deg": 89.53048021606024
+    "ugf_MHz": 316.1,
+    "pm_deg": 89.5
    },
    {
-    "iload_mA": 50.10000000000001,
+    "iload_mA": 50.1,
     "dc_gain_dB": 36.47,
-    "ugf_MHz": 283.13241606132476,
-    "pm_deg": 89.9016
+    "ugf_MHz": 283.1,
+    "pm_deg": 89.9
    }
   ]
  }

@@ -29,9 +29,9 @@
 [PSR]
   ILOAD=100 uA: DC -41.9 dB, 1kHz: -41.9 dB, 100kHz: -33.6 dB, 1MHz: -14.6 dB, 10MHz: -2.1 dB, worst 9.0 dB @ 398.1MHz
   ILOAD=50 mA: DC -57.8 dB, 1kHz: -57.1 dB, 100kHz: -25.8 dB, 1MHz: -7.0 dB, 10MHz: -0.9 dB, worst 2.1 dB @ 346.7MHz
-[Transient]  ILOAD 150 uA <-> 10 mA, edge 500 ns
-  VOUT=0.80 V: undershoot 2.7 mV, Ts 500 ns | overshoot 4.9 mV, Ts 582 ns  (Ts: +-0.5 mV)
-  VOUT=0.90 V: undershoot 2.9 mV, Ts 514 ns | overshoot 5.3 mV, Ts 598 ns  (Ts: +-0.5 mV)
+[Transient]  ILOAD 150 µA <-> 10 mA, edge 500 ns, T_S band +-0.5 mV
+  VOUT=0.80 V: undershoot 2.7 mV, T_S 500 ns | overshoot 4.9 mV, T_S 582 ns
+  VOUT=0.90 V: undershoot 2.9 mV, T_S 514 ns | overshoot 5.3 mV, T_S 598 ns
 [Current efficiency]  (transient data eff1.csv)
   ILOAD=   0.150 mA  IQ=269.3 uA  eta=35.77 %
   ILOAD=  10.000 mA  IQ=264.2 uA  eta=97.43 %

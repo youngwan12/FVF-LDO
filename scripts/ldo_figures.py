@@ -7,6 +7,7 @@ Layouts follow the reference figures in the 2026 LDO paper figure guide
 (JSSC'22 / SOVC'26 style).
 """
 from pathlib import Path
+import logging
 import re
 
 import numpy as np
@@ -14,6 +15,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.ticker import FuncFormatter, LogLocator
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)   # bold-fallback chatter
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -29,29 +32,43 @@ COND = {
 }
 
 # ---------------------------------------------------------------- style ----
-COL_W = 3.5  # IEEE single column width [in]
+COL_W = 3.5    # IEEE single column width [in]
+DCOL_W = 7.16  # IEEE double column width [in]
+
+# Reference figures (JSSC'22 / SOVC'26) use bold Arial. Liberation Sans is the
+# metric-compatible Arial clone used when Arial itself is not installed.
+_avail = {f.name for f in mpl.font_manager.fontManager.ttflist}
+FONT = next(f for f in ("Arial", "Liberation Sans", "Helvetica", "DejaVu Sans") if f in _avail)
 mpl.rcParams.update({
-    "font.family": "serif",
-    "font.serif": ["Times New Roman", "Times", "Liberation Serif", "DejaVu Serif"],
-    "mathtext.fontset": "stix",
+    "font.family": "sans-serif",
+    "font.sans-serif": [FONT],
+    "font.weight": "bold",
+    "axes.labelweight": "bold",
+    "axes.titleweight": "bold",
+    "mathtext.fontset": "custom",
+    "mathtext.rm": f"{FONT}:bold",
+    "mathtext.it": f"{FONT}:bold",
+    "mathtext.bf": f"{FONT}:bold",
+    "mathtext.sf": f"{FONT}:bold",
+    "mathtext.default": "rm",
     "font.size": 8,
     "axes.labelsize": 8,
     "axes.titlesize": 8,
     "legend.fontsize": 7,
     "xtick.labelsize": 7,
     "ytick.labelsize": 7,
-    "axes.linewidth": 0.8,
-    "lines.linewidth": 1.0,
+    "axes.linewidth": 1.0,
+    "lines.linewidth": 1.1,
     "lines.markersize": 3.2,
-    "lines.markeredgewidth": 0.7,
+    "lines.markeredgewidth": 0.8,
     "xtick.direction": "in",
     "ytick.direction": "in",
     "xtick.top": True,
     "ytick.right": True,
-    "xtick.major.width": 0.6,
-    "ytick.major.width": 0.6,
-    "xtick.minor.width": 0.4,
-    "ytick.minor.width": 0.4,
+    "xtick.major.width": 0.8,
+    "ytick.major.width": 0.8,
+    "xtick.minor.width": 0.5,
+    "ytick.minor.width": 0.5,
     "axes.grid": True,
     "axes.grid.which": "both",
     "grid.color": "#dddddd",
@@ -104,7 +121,7 @@ def log_axis(ax, axis="x", hz=False):
 
 
 def ma_label(i):
-    return rf"{i * 1e6:.0f} $\mu$A" if i < 1e-3 else f"{i * 1e3:g} mA"
+    return rf"{i * 1e6:.0f} µA" if i < 1e-3 else f"{i * 1e3:g} mA"
 
 
 # ------------------------------------------------------------ loading ----
@@ -144,6 +161,7 @@ def settle_time(t, v, t0, band, t1):
 
 
 metrics = []
+SUMMARY = {}          # every computed value, written to figures/summary.json
 
 
 def log(s):
@@ -162,6 +180,9 @@ def fig_maxload():
     vmin = V[m].min(0)
 
     log("[Max load]  light-load VOUT = %.1f mV" % (v0 * 1e3))
+    SUMMARY["max_load"] = dict(v_light_mV=v0 * 1e3, rows=[
+        dict(iload_mA=i * 1e3, vout_ss_mV=vs * 1e3, dv_ss_mV=(v0 - vs) * 1e3, undershoot_mV=(v0 - vm) * 1e3)
+        for i, vs, vm in zip(il, vss, vmin)])
     for i, vs, vm in zip(il, vss, vmin):
         log("  ILOAD=%5.0f mA  VOUT(4.99us)=%.1f mV  dV_ss=%.1f mV  undershoot=%.1f mV"
             % (i * 1e3, vs * 1e3, (v0 - vs) * 1e3, (v0 - vm) * 1e3))
@@ -172,9 +193,9 @@ def fig_maxload():
     for c, k in zip(SER, sel):
         ax1.plot(t * 1e6, V[:, k] * 1e3, color=c, label=f"{il[k]*1e3:.0f} mA")
     ax1.set_xlim(0, 10)
-    ax1.set_xlabel(r"Time [$\mu$s]")
+    ax1.set_xlabel(r"Time [µs]")
     ax1.set_ylabel("Output Voltage [mV]")
-    ax1.legend(title=r"$I_\mathrm{LOAD}$ (from 150 $\mu$A)", ncol=3, loc="lower right",
+    ax1.legend(title=r"$I_\mathrm{LOAD}$ (from 150 µA)", ncol=3, loc="lower right",
                title_fontsize=7, columnspacing=0.8, handlelength=1.4)
     ax1.set_ylim(755, 840)
     panel_label(ax1, "(a)")
@@ -220,6 +241,9 @@ def fig_line_reg():
         ax.text(1.19, pl + 0.012, f"{lnr:.2f} mV/V", ha="right", va="bottom", fontsize=6.5)
         log("  VREF=%3.0f mV  VOUT=%.1f mV  VIN range %.2f-%.2f V  dropout=%.0f mV  LNR=%.2f mV/V"
             % (vr * 1e3, pl * 1e3, lo, hi, (lo - pl) * 1e3, lnr))
+    SUMMARY["line_reg"] = [dict(vref_V=vr, vout_mV=pl * 1e3, vin_lo_V=lo, vin_hi_V=hi,
+                                dropout_mV=(lo - pl) * 1e3, lnr_mV_per_V=lnr)
+                           for vr, (pl, lo, hi, lnr) in zip(vref, rows)]
     vdo = [lo - pl for pl, lo, _, _ in rows]
     ax.text(0.77, 0.94, rf"$V_\mathrm{{DO}}$ = {min(vdo)*1e3:.0f}$-${max(vdo)*1e3:.0f} mV",
             fontsize=7, ha="left")
@@ -274,18 +298,24 @@ def fig_load_reg():
         "min(ILOAD,max, sweep end), from >= 1 mA; I_min: VOUT within 1 mV of VOUT(10 mA); "
         "ILOAD,max: VOUT < 0.99*VREF" % COND["ldr_vin"])
     drop = []
+    SUMMARY["load_reg"] = dict(vin_V=COND["ldr_vin"], sweep_end_mA=x[-1] * 1e3, rows=[])
     for k, (vr, v) in enumerate(zip(vref, V.T)):
         r = load_reg_metrics(x, v, vr)
+        SUMMARY["load_reg"]["rows"].append(dict(
+            vref_V=vr, regulating=bool(r["regulating"]), vout_mV=r["v_hi"] * 1e3,
+            imin_uA=r["imin"] * 1e6, ldr_uV_per_mA=r["ldr"] * 1e3, i_lo_mA=r["i_lo"] * 1e3,
+            i_hi_mA=r["i_hi"] * 1e3, imax_mA=None if np.isinf(r["imax"]) else r["imax"] * 1e3,
+            vout_first_mV=v[0] * 1e3, vout_last_mV=v[-1] * 1e3))
         ls = "-" if r["regulating"] else "--"
         ax.semilogx(x * 1e3, v, color=SER[k], ls=ls, marker=MRK[k], markevery=(k, 8),
                     mfc="white")
         if r["regulating"]:
             ax.text(0.3, r["v_hi"] + 0.006,
                     rf"$V_\mathrm{{REF}}$ = {vr:.2f} V", fontsize=6.5, va="bottom")
-            ax.text(x[-1] * 1e3 * 0.75, r["v_hi"] + 0.006, f"{r['ldr']*1e3:.1f} $\\mu$V/mA",
+            ax.text(x[-1] * 1e3 * 0.75, r["v_hi"] + 0.006, f"{r['ldr']*1e3:.1f} µV/mA",
                     fontsize=6.5, ha="right", va="bottom")
             if r["imin"] > x[0]:
-                ax.annotate(rf"$I_\mathrm{{min}}$ = {r['imin']*1e6:.0f} $\mu$A",
+                ax.annotate(rf"$I_\mathrm{{min}}$ = {r['imin']*1e6:.0f} µA",
                             (r["imin"] * 1e3, np.interp(np.log10(r["imin"]), np.log10(x), v)), (r["imin"] * 1e3 * 2.5, r["v_lo"] - 0.022),
                             fontsize=6.5, arrowprops=dict(arrowstyle="-", lw=0.5, color=INK))
             im = ">%.0f mA (sweep end)" % (x[-1] * 1e3) if np.isinf(r["imax"]) else "%.1f mA" % (r["imax"] * 1e3)
@@ -334,118 +364,167 @@ def fig_psr():
                 transform=ax.transAxes, va="top", fontsize=7)
     save(fig, "fig4_psr")
     log("[PSR]")
+    SUMMARY["psr"] = [dict(iload_mA=i * 1e3, dc_dB=p[0], **{f"at_{eng_hz(fx, 0)}Hz_dB": at(f, p, fx)
+                           for fx in (1e3, 1e4, 1e5, 1e6, 1e7)},
+                           worst_dB=p.max(), worst_f_Hz=f[p.argmax()]) for i, p in zip(il, P.T)]
     for i, p in zip(il, P.T):
         pts = ", ".join(f"{eng_hz(fx, 0)}Hz: {at(f, p, fx):.1f} dB" for fx in (1e3, 1e5, 1e6, 1e7))
-        log(f"  ILOAD={ma_label(i).replace('$\\mu$', 'u')}: DC {p[0]:.1f} dB, {pts}, "
+        log(f"  ILOAD={ma_label(i).replace('µ', 'u')}: DC {p[0]:.1f} dB, {pts}, "
             f"worst {p.max():.1f} dB @ {eng_hz(f[p.argmax()], 0)}Hz")
 
 
 # ------------------------------------------------ 5. Transient response ----
+TS_BAND = 0.5e-3    # settling band for T_S: +-0.5 mV around the final value
+T_EDGE = 0.5        # load-step edge time [us]
+ARROW = dict(arrowstyle="<|-|>", mutation_scale=6, lw=0.7, color=INK, shrinkA=0, shrinkB=0)
+
+
 def tr_data():
     cols, d = load("tr1.csv")
-    t = d[:, 0] * 1e6
+    t = d[:, 0] * 1e6                                    # [us]
     return t, (d[:, 1], d[:, 2]), d[:, 3]
 
 
-def scope_axes(ax):
-    ax.set_xticks(np.linspace(*ax.get_xlim(), 11))
-    ax.set_yticks(np.linspace(0, 1, 9))
-    ax.tick_params(labelleft=False, labelbottom=False, length=0)
-    ax.grid(True, which="major", ls=":", color="#bbbbbb", lw=0.4)
-    ax.grid(False, which="minor")
-    ax.set_ylim(0, 1)
+def tr_events(t, v):
+    """Undershoot / overshoot of one VOUT trace and the box that encloses each event."""
+    base = at(t, v, 0.95)
+    m1, m2 = (t > 1) & (t < 5), (t > 5) & (t < 10)
+    e = dict(base=base,
+             us=base - v[m1].min(), t_us=t[m1][np.argmin(v[m1])],
+             os=v[m2].max() - base, t_os=t[m2][np.argmax(v[m2])],
+             ts_u=settle_time(t, v, 1.0, TS_BAND, 4.95),
+             ts_o=settle_time(t, v, 5.0, TS_BAND, 9.95))
+    # box = step start - 80 ns ... T_S + 250 ns; extra room below the trace for the T_S arrow
+    for key, t0, ts, lo_pad, hi_pad in (("box_u", 1.0, e["ts_u"], 0.9e-3, 0.4e-3),
+                                         ("box_o", 5.0, e["ts_o"], 1.3e-3, 0.5e-3)):
+        x0, x1 = t0 - 0.08, t0 + ts + 0.25
+        w = (t >= x0) & (t <= x1)
+        e[key] = (x0, x1, v[w].min() - lo_pad, v[w].max() + hi_pad)   # time [us], volts
+    return e
 
 
-def scale_bar(ax, x, y, dx, dy, tx, ty):
-    """Scope-style scale bars (data coords): vertical dy from y up, horizontal dx below it."""
-    kw = dict(arrowstyle="<->", lw=0.6, color=INK, shrinkA=0, shrinkB=0, mutation_scale=5)
-    ax.annotate("", (x, y), (x, y + dy), arrowprops=kw)
-    ax.text(x - 0.01 * np.ptp(ax.get_xlim()), y + dy / 2, ty, ha="right", va="center", fontsize=6.5)
-    yh = y - 0.04
-    ax.annotate("", (x - dx, yh), (x, yh), arrowprops=kw)
-    ax.text(x - dx / 2, yh - 0.015, tx, ha="center", va="top", fontsize=6.5)
+def draw_box(ax, box, scale=1e3):
+    x0, x1, y0, y1 = box
+    ax.add_patch(Rectangle((x0, y0 * scale), x1 - x0, (y1 - y0) * scale,
+                           fill=False, ls=(0, (2, 1.5)), lw=0.7, ec=INK, zorder=4))
 
 
 def fig_transient():
     t, vouts, il = tr_data()
     lo, hi = il.min(), il.max()
-    t_edge = 0.5
-    log("[Transient]  ILOAD %.0f uA <-> %.0f mA, edge %.0f ns" % (lo * 1e6, hi * 1e3, t_edge * 1e3))
+    log("[Transient]  ILOAD %s <-> %s, edge %.0f ns, T_S band +-%.1f mV"
+        % (ma_label(lo), ma_label(hi), T_EDGE * 1e3, TS_BAND * 1e3))
 
-    vdiv, tdiv = 2e-3, 1.0                              # 2 mV/div, 1 us/div (8 x 10 div)
-    fig, axs = plt.subplots(1, 2, figsize=(COL_W, 1.9), gridspec_kw={"wspace": 0.05})
-    for j, (ax, v) in enumerate(zip(axs, vouts)):
-        base = at(t, v, 0.95)
-        us = base - v[(t > 1) & (t < 5)].min()
-        os_ = v[(t > 5) & (t < 10)].max() - base
-        ts_u = settle_time(t, v, 1.0, 0.5e-3, 4.95)
-        ts_o = settle_time(t, v, 5.0, 0.5e-3, 9.95)
-        log("  VOUT=%.2f V: undershoot %.1f mV, Ts %.0f ns | overshoot %.1f mV, Ts %.0f ns  (Ts: +-0.5 mV)"
-            % (base, us * 1e3, ts_u * 1e3, os_ * 1e3, ts_o * 1e3))
-        ax.set_xlim(0, 10)
-        yv = 0.62 + (v - base) / vdiv / 8                # VOUT: 2 mV/div around 0.62
-        yi = 0.08 + (il - lo) / (hi - lo) * 0.27         # ILOAD in the lower part
-        ax.plot(t, yv, color=VOUT_C, lw=0.9)
-        ax.plot(t, yi, color=ILOAD_C, lw=1.1)
-        scope_axes(ax)
-        for x0 in (0.85, 4.85):                           # dotted boxes on the step events
-            ax.add_patch(Rectangle((x0, 0.40), 0.9, 0.45, fill=False, ls=":", lw=0.6, ec=INK))
-        lab = rf"$V_\mathrm{{OUT}}$ = {base:.2f} V"
+    SUMMARY["transient"] = dict(i_lo_mA=lo * 1e3, i_hi_mA=hi * 1e3, edge_ns=T_EDGE * 1e3,
+                                ts_band_mV=TS_BAND * 1e3, rows=[])
+    fig, axs = plt.subplots(2, 2, figsize=(COL_W, 2.9), sharex=True,
+                            gridspec_kw={"height_ratios": [1.5, 1], "hspace": 0.08, "wspace": 0.42})
+    for j, v in enumerate(vouts):
+        e = tr_events(t, v)
+        log("  VOUT=%.2f V: undershoot %.1f mV, T_S %.0f ns | overshoot %.1f mV, T_S %.0f ns"
+            % (e["base"], e["us"] * 1e3, e["ts_u"] * 1e3, e["os"] * 1e3, e["ts_o"] * 1e3))
+        SUMMARY["transient"]["rows"].append(dict(
+            vout_V=e["base"], undershoot_mV=e["us"] * 1e3, ts_under_ns=e["ts_u"] * 1e3,
+            overshoot_mV=e["os"] * 1e3, ts_over_ns=e["ts_o"] * 1e3))
+        av, ai = axs[0, j], axs[1, j]
+        av.plot(t, v * 1e3, color=VOUT_C)
+        ai.plot(t, il * 1e3, color=ILOAD_C)
+        draw_box(av, e["box_u"])
+        draw_box(av, e["box_o"])
+        b = e["base"] * 1e3
+        av.set_ylim(b - 6, b + 8)
+        av.yaxis.set_major_locator(mpl.ticker.MultipleLocator(5))
+        av.text(0.04, 0.95, rf"$V_{{OUT}}$ = {e['base']:.2f} V", transform=av.transAxes,
+                va="top", fontsize=7)
         if COND["tr_vin"] is not None:
-            lab = rf"$V_\mathrm{{IN}}$ = {COND['tr_vin'][j]:.2f} V" "\n" + lab
-        ax.text(0.25, 0.97, lab, va="top", fontsize=7)
-        ax.text(3.25, yi.max() + 0.02, ma_label(hi), fontsize=7, ha="center", va="bottom")
-        ax.text(7.6, 0.10, ma_label(lo), fontsize=6.5, ha="center", va="bottom")
-        ax.text(3.25, 0.21, rf"$T_\mathrm{{Edge}}$ = {t_edge*1e3:.0f} ns", fontsize=6.5,
-                ha="center", va="center")
-        scale_bar(ax, 9.6, 0.40, tdiv, 1 / 8, rf"{tdiv:g} $\mu$s", f"{vdiv*1e3:g} mV")
-        panel_label(ax, f"({'ab'[j]})", y=-0.04)
+            av.text(0.04, 0.80, rf"$V_{{IN}}$ = {COND['tr_vin'][j]:.2f} V", transform=av.transAxes,
+                    va="top", fontsize=7)
+        av.text(e["box_u"][1] + 0.2, (b - e["us"] * 1e3), f"{e['us']*1e3:.1f} mV",
+                fontsize=6.5, va="center")
+        av.text(e["box_o"][1] + 0.2, (b + e["os"] * 1e3), f"{e['os']*1e3:.1f} mV",
+                fontsize=6.5, va="center")
+        ai.set_ylim(-2, 13)
+        ai.text(3.25, hi * 1e3 + 0.6, ma_label(hi), ha="center", va="bottom", fontsize=6.5)
+        ai.text(7.5, lo * 1e3 + 0.6, ma_label(lo), ha="center", va="bottom", fontsize=6.5)
+        ai.text(3.25, 4.5, rf"$T_{{Edge}}$" "\n" f"= {T_EDGE*1e3:.0f} ns", ha="center", va="center",
+                fontsize=6.5)
+        ai.set_xlim(0, 10)
+        ai.set_xlabel("Time [µs]")
+        ai.xaxis.set_major_locator(mpl.ticker.MultipleLocator(2))
+        panel_label(ai, f"({'ab'[j]})", y=-0.62)
+    axs[0, 0].set_ylabel(r"$V_{OUT}$ [mV]")
+    axs[1, 0].set_ylabel(r"$I_{LOAD}$ [mA]")
+    fig.align_ylabels(axs[:, 0])
     save(fig, "fig5_transient")
 
-    # zoom: undershoot | full | overshoot  (first column, VOUT = 0.80 V)
+    # ---- zoom: undershoot | full | overshoot (VOUT = 0.80 V), double column ----
     v = vouts[0]
-    base = at(t, v, 0.95)
-    fig = plt.figure(figsize=(COL_W, 1.75))
-    gs = fig.add_gridspec(1, 3, width_ratios=[1, 1.15, 1], wspace=0.06)
-    axl, axc, axr = (fig.add_subplot(gs[0, k]) for k in range(3))
-    windows = [(axl, 0.9, 2.1, 1.0), (axr, 4.9, 6.1, 5.0)]
-    axc.set_xlim(0, 10)
-    axc.plot(t, 0.62 + (v - base) / vdiv / 8, color=VOUT_C, lw=0.8)
-    axc.plot(t, 0.08 + (il - lo) / (hi - lo) * 0.27, color=ILOAD_C, lw=1.0)
-    scope_axes(axc)
-    for x0 in (0.85, 4.85):
-        axc.add_patch(Rectangle((x0, 0.40), 0.9, 0.45, fill=False, ls=":", lw=0.6, ec=INK))
-    axc.text(0.3, 0.97, rf"$V_\mathrm{{OUT}}$ = {base:.2f} V", va="top", fontsize=6.5)
-    axc.text(3.25, 0.37, ma_label(hi), fontsize=6.5, ha="center", va="bottom")
-    scale_bar(axc, 9.5, 0.40, 2.0, 1 / 8, r"2 $\mu$s", "2 mV")
+    e = tr_events(t, v)
+    b = e["base"] * 1e3
+    fig = plt.figure(figsize=(DCOL_W, 2.5))
+    gs = fig.add_gridspec(2, 3, width_ratios=[1, 1.35, 1], height_ratios=[1.5, 1],
+                          hspace=0.08, wspace=0.28)
+    av = [fig.add_subplot(gs[0, k]) for k in range(3)]
+    ai = [fig.add_subplot(gs[1, k], sharex=av[k]) for k in range(3)]
+    windows = [e["box_u"], None, e["box_o"]]
+    for k in range(3):
+        av[k].plot(t, v * 1e3, color=VOUT_C)
+        ai[k].plot(t, il * 1e3, color=ILOAD_C)
+        av[k].tick_params(labelbottom=False)
+        ai[k].set_ylim(-2, 13)
+        ai[k].set_xlabel("Time [µs]")
+        if windows[k] is None:
+            av[k].set_xlim(0, 10)
+            av[k].set_ylim(b - 6, b + 8)
+            av[k].xaxis.set_major_locator(mpl.ticker.MultipleLocator(2))
+        else:
+            x0, x1, y0, y1 = windows[k]
+            av[k].set_xlim(x0, x1)
+            av[k].set_ylim(y0 * 1e3, y1 * 1e3)
+            av[k].axhline(b, color=MUTED, lw=0.6, ls="--", zorder=1)
+            av[k].xaxis.set_major_locator(mpl.ticker.MultipleLocator(0.2))
+    for box in (e["box_u"], e["box_o"]):
+        draw_box(av[1], box)
+    # dotted guides from each box in the full view to its zoom panel
+    from matplotlib.patches import ConnectionPatch
+    for k, box, side in ((0, e["box_u"], 1), (2, e["box_o"], 0)):
+        x0, x1, y0, y1 = box
+        xb = x0 if side == 1 else x1
+        for yb, ya in ((y1, 1), (y0, 0)):
+            fig.add_artist(ConnectionPatch((xb, yb * 1e3), (side, ya), coordsA=av[1].transData,
+                                           coordsB=av[k].transAxes, ls=":", lw=0.6, color=MUTED))
 
-    zv = 2e-3                                           # zoom: 2 mV/div, 120 ns/div
-    for ax, t0, t1, ts in windows:
-        m = (t >= t0) & (t <= t1)
-        ax.set_xlim(t0, t1)
-        ax.plot(t[m], 0.60 + (v[m] - base) / zv / 8, color=VOUT_C, lw=0.9)
-        ax.plot(t[m], 0.08 + (il[m] - lo) / (hi - lo) * 0.27, color=ILOAD_C, lw=1.0)
-        scope_axes(ax)
-    us = base - v[(t > 1) & (t < 5)].min()
-    os_ = v[(t > 5) & (t < 10)].max() - base
-    ts_u = settle_time(t, v, 1.0, 0.5e-3, 4.95)
-    ts_o = settle_time(t, v, 5.0, 0.5e-3, 9.95)
-    tmin = t[(t > 1) & (t < 5)][np.argmin(v[(t > 1) & (t < 5)])]
-    tmax = t[(t > 5) & (t < 10)][np.argmax(v[(t > 5) & (t < 10)])]
-    arr = dict(arrowstyle="<->", lw=0.6, color=INK, shrinkA=0, shrinkB=0, mutation_scale=5)
-    y0, yd = 0.60, 0.60 - us / zv / 8
-    axl.annotate("", (tmin, y0), (tmin, yd), arrowprops=arr)
-    axl.text(tmin + 0.07, yd + 0.01, rf"$V_\mathrm{{Droop}}$ = {us*1e3:.1f} mV", fontsize=6, va="top")
-    axl.annotate("", (1.0, 0.85), (1.0 + ts_u, 0.85), arrowprops=arr)
-    axl.text(1.0 + ts_u / 2, 0.87, rf"$T_\mathrm{{S}}$ = {ts_u*1e3:.0f} ns", fontsize=6, ha="center", va="bottom")
-    axl.text(2.05, 0.08, r"$\Delta I/\Delta T$ =" "\n" rf"{(hi-lo)*1e3:.2f} mA/{t_edge*1e3:.0f} ns",
-             fontsize=6, ha="right", va="bottom")
-    yo = 0.60 + os_ / zv / 8
-    axr.annotate("", (tmax, y0), (tmax, yo), arrowprops=arr)
-    axr.text(tmax + 0.05, yo, rf"$V_\mathrm{{Overshoot}}$" "\n" rf"= {os_*1e3:.1f} mV", fontsize=6, va="top")
-    axr.annotate("", (5.0, 0.50), (5.0 + ts_o, 0.50), arrowprops=arr)
-    axr.text(5.0 + ts_o / 2, 0.48, rf"$T_\mathrm{{S}}$ = {ts_o*1e3:.0f} ns", fontsize=6, ha="center", va="top")
-    scale_bar(axr, 6.05, 0.22, 0.2, 1 / 8, "200 ns", "2 mV")
+    # undershoot annotations
+    yd = b - e["us"] * 1e3
+    av[0].annotate("", (e["t_us"], b), (e["t_us"], yd), arrowprops=ARROW)
+    av[0].text(e["t_us"] + 0.07, yd + 0.05, rf"$V_{{Droop}}$ = {e['us']*1e3:.1f} mV", fontsize=7,
+               va="bottom")
+    yt = yd - 0.45
+    av[0].annotate("", (1.0, yt), (1.0 + e["ts_u"], yt), arrowprops=ARROW)
+    av[0].text(1.0 + e["ts_u"] * 0.62, yt + 0.08, rf"$T_S$ = {e['ts_u']*1e3:.0f} ns", fontsize=7,
+               ha="center", va="bottom")
+    ai[0].text(0.97, 0.12, r"$\Delta I/\Delta T$ = " f"{(hi-lo)*1e3:.2f} mA / {T_EDGE*1e3:.0f} ns",
+               transform=ai[0].transAxes, ha="right", fontsize=6.5)
+    # overshoot annotations
+    yo = b + e["os"] * 1e3
+    av[2].annotate("", (e["t_os"], b), (e["t_os"], yo), arrowprops=ARROW)
+    av[2].text(e["t_os"] - 0.03, yo - 0.4, rf"$V_{{Overshoot}}$" "\n" f"= {e['os']*1e3:.1f} mV",
+               fontsize=7, ha="right", va="top")
+    yt = b - 0.6
+    av[2].annotate("", (5.0, yt), (5.0 + e["ts_o"], yt), arrowprops=ARROW)
+    av[2].text(5.0 + e["ts_o"] / 2, yt - 0.1, rf"$T_S$ = {e['ts_o']*1e3:.0f} ns", fontsize=7,
+               ha="center", va="top")
+    av[1].text(0.03, 0.95, rf"$V_{{OUT}}$ = {e['base']:.2f} V", transform=av[1].transAxes,
+               va="top", fontsize=7)
+    ai[1].text(3.25, hi * 1e3 + 0.6, ma_label(hi), ha="center", va="bottom", fontsize=7)
+    ai[1].text(7.5, lo * 1e3 + 0.6, ma_label(lo), ha="center", va="bottom", fontsize=7)
+    ai[1].text(3.25, 4.5, rf"$T_{{Edge}}$" "\n" f"= {T_EDGE*1e3:.0f} ns", ha="center", va="center",
+               fontsize=7)
+    av[0].set_ylabel(r"$V_{OUT}$ [mV]")
+    ai[0].set_ylabel(r"$I_{LOAD}$ [mA]")
+    for k, lab in enumerate(("(a) Undershoot", "(b) Full", "(c) Overshoot")):
+        panel_label(ai[k], lab, y=-0.62)
+    fig.align_ylabels([av[0], ai[0]])
     save(fig, "fig6_transient_zoom")
 
 
@@ -477,12 +556,14 @@ def fig_efficiency():
     ax.set_ylabel("Current Efficiency [%]")
     ax.text(0.97, 0.38, f"Peak Efficiency = {eta.max():.2f}%\n"
             rf"@ $I_\mathrm{{LOAD}}$ = {x[eta.argmax()]*1e3:.0f} mA" "\n"
-            rf"$I_\mathrm{{Q}}$ = {q.min()*1e6:.0f}$-${q.max()*1e6:.0f} $\mu$A",
+            rf"$I_\mathrm{{Q}}$ = {q.min()*1e6:.0f}$-${q.max()*1e6:.0f} µA",
             transform=ax.transAxes, ha="right", va="center", fontsize=7,
             bbox=dict(boxstyle="square,pad=0.3", fc="white", ec=INK, lw=0.6))
     ax.legend(loc="lower right")
     save(fig, "fig7_current_efficiency")
     log("[Current efficiency]  (transient data eff1.csv)")
+    SUMMARY["efficiency"] = dict(source="eff1.csv (transient, 4.99 us after the step)", rows=[
+        dict(iload_mA=a_ * 1e3, iq_uA=b_ * 1e6, eta_pct=e) for a_, b_, e in zip(x, q, eta)])
     for a_, b_, e in zip(x, q, eta):
         log("  ILOAD=%8.3f mA  IQ=%.1f uA  eta=%.2f %%" % (a_ * 1e3, b_ * 1e6, e))
 
@@ -556,6 +637,7 @@ def fig_stability(fname, outname, phase_db=False):
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(COL_W, 3.2), sharex=True,
                                    gridspec_kw={"hspace": 0.1})
     log(f"[Stability: {fname}]  (PM read as lstb phase at 0 dB crossing)")
+    rows = SUMMARY.setdefault("stability", {}).setdefault(outname, [])
     pms = []
     for k, (i, g, p) in enumerate(zip(il, G.T, P.T)):
         kw = dict(color=SER[k])
@@ -567,8 +649,9 @@ def fig_stability(fname, outname, phase_db=False):
             lf = np.interp(0, [g[c + 1], g[c]], np.log10([f[c + 1], f[c]]))
             pm = np.interp(lf, np.log10(f[c:c + 2]), p[c:c + 2])
             pms.append(pm)
+            rows.append(dict(iload_mA=i * 1e3, dc_gain_dB=g[0], ugf_MHz=10 ** lf / 1e6, pm_deg=pm))
             log("  ILOAD=%s  DC gain=%.1f dB  UGF=%.1f MHz  PM=%.1f deg"
-                % (ma_label(i).replace("$\\mu$", "u"), g[0], 10 ** lf / 1e6, pm))
+                % (ma_label(i).replace("µ", "u"), g[0], 10 ** lf / 1e6, pm))
     ax1.axhline(0, color=INK, lw=0.6)
     ax1.set_ylabel("Loop Gain [dB]")
     ax2.set_ylabel(r"Phase [$^\circ$]")
@@ -594,3 +677,5 @@ if __name__ == "__main__":
     fig_stability("stb1.csv", "fig8a_stability_overall_loop", phase_db=True)
     fig_stability("f_stb1.csv", "fig8b_stability_fast_loop")
     (OUT / "metrics.txt").write_text("\n".join(metrics) + "\n")
+    import json
+    (OUT / "summary.json").write_text(json.dumps(SUMMARY, indent=1, default=float) + "\n")

@@ -20,13 +20,12 @@
   VREF=800 mV  VOUT=801.9 mV  VIN range 0.97-1.20 V  dropout=168 mV  LNR=1.90 mV/V
   VREF=850 mV  VOUT=851.9 mV  VIN range 1.02-1.20 V  dropout=168 mV  LNR=2.04 mV/V
   VREF=900 mV  VOUT=901.9 mV  VIN range 1.07-1.20 V  dropout=168 mV  LNR=2.45 mV/V
-[Load regulation]  LDR = (VOUT(100uA) - VOUT(I_hi)) / (I_hi - 100uA), I_hi = min(100 mA, ILOAD,max);  ILOAD,max: VOUT < 0.99*VREF
-  VREF=700 mV  VOUT(100uA)=733.00 mV  VOUT(100mA)=733.00 mV  LDR=0.0000 mV/mA  ILOAD,max=>1000 mA (sweep end)
-  VREF=750 mV  VOUT(100uA)=752.10 mV  VOUT(100mA)=752.10 mV  LDR=0.0000 mV/mA  ILOAD,max=>1000 mA (sweep end)
-  VREF=800 mV  VOUT(100uA)=802.20 mV  VOUT(100mA)=802.20 mV  LDR=0.0000 mV/mA  ILOAD,max=>1000 mA (sweep end)
-  VREF=850 mV  VOUT(100uA)=850.20 mV  VOUT(100mA)=850.20 mV  LDR=0.0000 mV/mA  ILOAD,max=>1000 mA (sweep end)
-  VREF=900 mV  VOUT(100uA)=853.20 mV  VOUT(100mA)=853.20 mV  LDR=0.0000 mV/mA  ILOAD,max=not regulating
-  !! VOUT does not change over the sweep -> load current not swept; re-simulate
+[Load regulation]  DC sweep, VIN = 1.0 V;  LDR = dVOUT/dILOAD from I_min to min(ILOAD,max, sweep end), from >= 1 mA; I_min: VOUT within 1 mV of VOUT(10 mA); ILOAD,max: VOUT < 0.99*VREF
+  VREF=700 mV  VOUT=702.02 mV  I_min=178 uA  LDR(1-50 mA)=0.0020 mV/mA  ILOAD,max=>50 mA (sweep end)
+  VREF=750 mV  VOUT=751.95 mV  I_min=10 uA  LDR(1-50 mA)=0.0006 mV/mA  ILOAD,max=>50 mA (sweep end)
+  VREF=800 mV  VOUT=802.01 mV  I_min=10 uA  LDR(1-50 mA)=0.0031 mV/mA  ILOAD,max=>50 mA (sweep end)
+  VREF=850 mV  dropout at VIN = 1.0 V: VOUT 850.0 -> 831.8 mV over the sweep
+  VREF=900 mV  dropout at VIN = 1.0 V: VOUT 852.8 -> 831.8 mV over the sweep
 [PSR]
   ILOAD=100 uA: DC -41.9 dB, 1kHz: -41.9 dB, 100kHz: -33.6 dB, 1MHz: -14.6 dB, 10MHz: -2.1 dB, worst 9.0 dB @ 398.1MHz
   ILOAD=50 mA: DC -57.8 dB, 1kHz: -57.1 dB, 100kHz: -25.8 dB, 1MHz: -7.0 dB, 10MHz: -0.9 dB, worst 2.1 dB @ 346.7MHz

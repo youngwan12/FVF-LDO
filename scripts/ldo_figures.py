@@ -25,6 +25,7 @@ COND = {
     "psr_vin": None,      # e.g. 1.0  [V]
     "psr_vout": None,     # e.g. 0.8  [V]
     "tr_vin": None,       # e.g. (1.0, 1.1) for the two tr1.csv columns [V]
+    "ldr_vin": 1.0,       # VIN of the loadR1.csv DC sweep [V]
 }
 
 # ---------------------------------------------------------------- style ----
@@ -232,62 +233,82 @@ def fig_line_reg():
 
 
 # ------------------------------------------------- 3. Load regulation ----
-def load_reg_metrics(x, v, vr, i_lo=100e-6, i_hi=100e-3):
-    """From a DC sweep VOUT(ILOAD): VOUT at i_lo / i_hi, LDR [mV/mA], ILOAD,max.
+def load_reg_metrics(x, v, vr, i_ref=10e-3, tol=1e-3, i_lo_min=1e-3):
+    """From a DC sweep VOUT(ILOAD) for one VREF.
 
-    ILOAD,max = first load where VOUT falls below 0.99*VREF (log-interpolated);
-    LDR is taken between i_lo and min(i_hi, ILOAD,max).
+    regulating : VOUT(i_ref) within 1 % of VREF (otherwise the curve is in dropout)
+    imin       : lowest load from which VOUT stays within +-tol of VOUT(i_ref)
+    imax       : first load above imin where VOUT < 0.99*VREF (inf: not reached in sweep)
+    ldr        : (VOUT(i_lo) - VOUT(i_hi)) / (i_hi - i_lo) [mV/mA],
+                 i_lo = max(imin, 1 mA), i_hi = min(imax, sweep end)
     """
     lx = np.log10(x)
-    below = np.where(v < 0.99 * vr)[0]
-    if below.size and below[0] > 0:
+    v_ref = np.interp(np.log10(i_ref), lx, v)
+    regulating = abs(v_ref - vr) < 0.01 * vr
+    ok = np.abs(v - v_ref) < tol
+    bad = np.where(~ok[: np.searchsorted(x, i_ref)])[0]
+    imin = x[bad[-1] + 1] if bad.size else x[0]
+    below = np.where((v < 0.99 * vr) & (x > imin))[0]
+    if below.size:
         k = below[0]
         imax = 10 ** np.interp(0.99 * vr, [v[k], v[k - 1]], [lx[k], lx[k - 1]])
     else:
-        imax = np.nan if below.size else np.inf          # nan: never regulates
-    hi = min(i_hi, imax) if np.isfinite(imax) else i_hi
-    v_lo = np.interp(np.log10(i_lo), lx, v)
-    v_hi = np.interp(np.log10(hi), lx, v)
-    ldr = (v_lo - v_hi) / (hi - i_lo)                    # V/A == mV/mA
-    return v_lo, v_hi, hi, ldr, imax
+        imax = np.inf
+    i_hi = min(imax, x[-1])
+    i_lo = max(imin, i_lo_min)
+    v_lo, v_hi = np.interp(np.log10(i_lo), lx, v), np.interp(np.log10(i_hi), lx, v)
+    ldr = (v_lo - v_hi) / (i_hi - i_lo)                  # V/A == mV/mA
+    return dict(regulating=regulating, imin=imin, imax=imax, i_lo=i_lo, i_hi=i_hi,
+                v_lo=v_lo, v_hi=v_hi, ldr=ldr)
 
 
 def fig_load_reg():
     cols, d = load("loadR1.csv")
     x, V = d[:, 0], d[:, 1:]
     vref = [param(c) for c in cols[1:]]
-    fig, ax = plt.subplots(figsize=(COL_W, 2.5))
-    invalid = np.ptp(V, axis=0).max() < 1e-5
-    log("[Load regulation]  LDR = (VOUT(100uA) - VOUT(I_hi)) / (I_hi - 100uA), "
-        "I_hi = min(100 mA, ILOAD,max);  ILOAD,max: VOUT < 0.99*VREF")
+    if np.ptp(V, axis=0).max() < 1e-5:
+        log("[Load regulation]  !! VOUT does not change over the sweep -> load not swept; re-simulate")
+        return
+    fig, ax = plt.subplots(figsize=(COL_W, 2.6))
+    log("[Load regulation]  DC sweep, VIN = %s V;  LDR = dVOUT/dILOAD from I_min to "
+        "min(ILOAD,max, sweep end), from >= 1 mA; I_min: VOUT within 1 mV of VOUT(10 mA); "
+        "ILOAD,max: VOUT < 0.99*VREF" % COND["ldr_vin"])
+    drop = []
     for k, (vr, v) in enumerate(zip(vref, V.T)):
-        ax.semilogx(x * 1e3, v, color=SER[k], marker=MRK[k], markevery=6, mfc="white",
-                    label=f"{vr:.2f} V")
-        v_lo, v_hi, hi, ldr, imax = load_reg_metrics(x, v, vr)
-        if not invalid:
-            ax.text(x[-1] * 1e3 * 0.8, v_lo + 0.008, f"{ldr:.3f} mV/mA", ha="right",
-                    va="bottom", fontsize=6.5)
-            if np.isfinite(imax):
-                ax.plot(imax * 1e3, 0.99 * vr, marker="x", color=INK, ms=4, zorder=5)
-        im = ("%.1f mA" % (imax * 1e3)) if np.isfinite(imax) else \
-            (">%.0f mA (sweep end)" % (x[-1] * 1e3) if np.isinf(imax) else "not regulating")
-        log("  VREF=%3.0f mV  VOUT(100uA)=%.2f mV  VOUT(%.0fmA)=%.2f mV  LDR=%.4f mV/mA  ILOAD,max=%s"
-            % (vr * 1e3, v_lo * 1e3, hi * 1e3, v_hi * 1e3, ldr, im))
+        r = load_reg_metrics(x, v, vr)
+        ls = "-" if r["regulating"] else "--"
+        ax.semilogx(x * 1e3, v, color=SER[k], ls=ls, marker=MRK[k], markevery=(k, 8),
+                    mfc="white")
+        if r["regulating"]:
+            ax.text(0.3, r["v_hi"] + 0.006,
+                    rf"$V_\mathrm{{REF}}$ = {vr:.2f} V", fontsize=6.5, va="bottom")
+            ax.text(x[-1] * 1e3 * 0.75, r["v_hi"] + 0.006, f"{r['ldr']*1e3:.1f} $\\mu$V/mA",
+                    fontsize=6.5, ha="right", va="bottom")
+            if r["imin"] > x[0]:
+                ax.annotate(rf"$I_\mathrm{{min}}$ = {r['imin']*1e6:.0f} $\mu$A",
+                            (r["imin"] * 1e3, np.interp(np.log10(r["imin"]), np.log10(x), v)), (r["imin"] * 1e3 * 2.5, r["v_lo"] - 0.022),
+                            fontsize=6.5, arrowprops=dict(arrowstyle="-", lw=0.5, color=INK))
+            im = ">%.0f mA (sweep end)" % (x[-1] * 1e3) if np.isinf(r["imax"]) else "%.1f mA" % (r["imax"] * 1e3)
+            log("  VREF=%3.0f mV  VOUT=%.2f mV  I_min=%.0f uA  LDR(%.0f-%.0f mA)=%.4f mV/mA  ILOAD,max=%s"
+                % (vr * 1e3, r["v_hi"] * 1e3, r["imin"] * 1e6, r["i_lo"] * 1e3, r["i_hi"] * 1e3,
+                   r["ldr"], im))
+        else:
+            drop.append(vr)
+            log("  VREF=%3.0f mV  dropout at VIN = %s V: VOUT %.1f -> %.1f mV over the sweep"
+                % (vr * 1e3, COND["ldr_vin"], v[0] * 1e3, v[-1] * 1e3))
+    if drop:
+        v_d = V[:, [vref.index(vr) for vr in drop]].mean(1)
+        ax.text(x[0] * 1e3 * 1.3, v_d[0] + 0.006,
+                rf"$V_\mathrm{{REF}}$ = {', '.join(f'{vr:.2f}' for vr in drop)} V (dropout)",
+                fontsize=6.5, va="bottom")
     log_axis(ax)
     ax.set_xlabel("Load Current [mA]")
     ax.set_ylabel("Output Voltage [V]")
     ax.set_xlim(x[0] * 1e3, x[-1] * 1e3)
-    ax.set_ylim(0.65, 1.0)
-    ax.legend(title=r"$V_\mathrm{REF}$", title_fontsize=7, loc="upper left", ncol=3,
-              columnspacing=0.8, handlelength=1.6)
-    if invalid:
-        ax.text(0.5, 0.5, "INVALID SWEEP\n(VOUT independent of load)\nre-simulate",
-                transform=ax.transAxes, ha="center", va="center", color=WARN,
-                fontsize=9, fontweight="bold", alpha=0.85)
-        log("  !! VOUT does not change over the sweep -> load current not swept; re-simulate")
-    else:
-        ax.text(0.02, 0.04, r"$\times$: $I_\mathrm{LOAD,max}$ ($V_\mathrm{OUT}$ = 0.99$V_\mathrm{REF}$)",
-                transform=ax.transAxes, fontsize=6.5)
+    ax.set_ylim(0.67, 0.89)
+    ax.text(0.98, 0.03, rf"$V_\mathrm{{IN}}$ = {COND['ldr_vin']:.1f} V",
+            transform=ax.transAxes, ha="right", va="bottom", fontsize=7,
+            bbox=dict(boxstyle="square,pad=0.3", fc="white", ec=INK, lw=0.6))
     save(fig, "fig3_load_regulation")
 
 
@@ -475,7 +496,7 @@ def fig_efficiency_dc():
     lc, ld = load("loadR1.csv")
     imaxs = {}
     for c, v in zip(lc[1:], ld[:, 1:].T):
-        imaxs[round(param(c), 4)] = load_reg_metrics(ld[:, 0], v, param(c))[4]
+        imaxs[round(param(c), 4)] = load_reg_metrics(ld[:, 0], v, param(c))["imax"]
     fig, ax = plt.subplots(figsize=(COL_W, 2.4))
     log("[Current efficiency]  (DC sweep iq1.csv, eta = IL/(IL+IQ), up to ILOAD,max)")
     best = (0, 0, 0)

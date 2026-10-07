@@ -360,6 +360,6 @@ if __name__ == "__main__":
     fig_psr()
     fig_transient()
     fig_efficiency()
-    fig_stability("stb1.csv", "fig8a_stability_stb1", None)
-    fig_stability("f_stb1.csv", "fig8b_stability_f_stb1", None)
+    fig_stability("stb1.csv", "fig8a_stability_overall_loop", None)
+    fig_stability("f_stb1.csv", "fig8b_stability_fast_loop", None)
     (OUT / "metrics.txt").write_text("\n".join(metrics) + "\n")

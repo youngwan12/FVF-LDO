@@ -15,6 +15,7 @@ import warnings
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.ticker import FuncFormatter, LogLocator, MultipleLocator
 
@@ -323,17 +324,18 @@ def fig_line_reg():
     x0, x1 = LNR_X0, vin[-1]
     m = vin >= x0 - 0.02 - EPS
     ax.plot([x0, x1], [x0, x1], ls="--", color=INK, lw=0.8)
-    txt(ax, 0.835, 0.872, r"$V_{OUT}$ = $V_{IN}$", rotation=45, transform_rotates_text=True,
-        rotation_mode="anchor", ha="left", va="bottom", box=False)
+    txt(ax, x0 + 0.014, x0 + 0.040, r"$V_{OUT}$ = $V_{IN}$", rotation=45, transform_rotates_text=True,
+        rotation_mode="anchor", ha="left", va="bottom")
+    inner = np.where((vin[m] > x0 + EPS) & (vin[m] < x1 - EPS))[0]   # no markers on the axis edges
     for k, (vr, v, r) in enumerate(zip(vref, V.T, rows)):
-        ax.plot(vin[m], v[m], color=SER[k], marker=MRK[k], markevery=slice(k % 3, None, 3), mfc="white",
-                label=f"{vr:.2f} V  ({r['lnr']:.1f})")
+        ax.plot(vin[m], v[m], color=SER[k], marker=MRK[k], markevery=[int(j) for j in inner[k::len(vref)]],
+                mfc="white", label=f"{vr:.2f} V  ({r['lnr']:.1f})")
     # dropout voltage of the second-highest VREF: VOUT = VIN line -> start of regulation
-    r = rows[-2]
+    r = rows[-2] if len(rows) > 1 else rows[0]
     y = r["plateau"]
     ax.annotate("", (y, y), (r["vin_min"], y), arrowprops=ARROW, zorder=7)
     txt(ax, (y + r["vin_min"]) / 2, y + 0.006, rf"$V_{{DO}}$ = {(r['vin_min'] - y) * 1e3:.0f} mV",
-        ha="center", va="bottom", box=False)
+        ha="center", va="bottom")
     ax.set_xlim(x0, x1)
     ax.set_ylim(0.60, 0.93)
     ax.xaxis.set_major_locator(MultipleLocator(0.05))
@@ -342,8 +344,13 @@ def fig_line_reg():
     ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.2f}"))
     ax.set_xlabel("Input Voltage [V]")
     ax.set_ylabel("Output Voltage [V]")
-    ax.legend(title=r"$V_{REF}$  (LNR [mV/V])", loc="lower right", ncol=3, borderpad=0.4,
-              labelspacing=0.25, handlelength=1.6, columnspacing=0.8, handletextpad=0.4)
+    # ncol=3 fills column-wise: reorder so the rows read 0.70 0.75 0.80 / 0.85 0.90
+    h, lab = ax.get_legend_handles_labels()
+    nr = -(-len(h) // 3)
+    order = [r * 3 + c for c in range(3) for r in range(nr) if r * 3 + c < len(h)]
+    ax.legend([h[i] for i in order], [lab[i] for i in order], title=r"$V_{REF}$  (LNR [mV/V])",
+              loc="lower right", ncol=3, borderpad=0.4, borderaxespad=0.8, labelspacing=0.25,
+              handlelength=1.6, columnspacing=0.8, handletextpad=0.4)
     save(fig, "fig2_line_regulation")
 
 
@@ -380,8 +387,9 @@ def load_reg_metrics(x, v, vr, i_ref=10e-3, tol=1e-3, i_lo_min=1e-3):
         m = (x >= i_lo - EPS) & (x <= i_hi + EPS)
         v0 = np.interp(np.log10(LDR_I0), lx, v)
         v1 = np.interp(np.log10(i_hi), lx, v)
-        r.update(imin=imin, i_lo=i_lo, i_hi=i_hi, v0=v0, v1=v1, ldr=(v0 - v1) / (i_hi - LDR_I0),
-                 ldr_fit=-np.polyfit(x[m], v[m], 1)[0])
+        r.update(imin=imin, i_lo=i_lo, i_hi=i_hi, v0=v0, v1=v1,
+                 ldr=(v0 - v1) / (i_hi - LDR_I0) if i_hi > LDR_I0 else None,
+                 ldr_fit=-np.polyfit(x[m], v[m], 1)[0] if m.sum() >= 2 else None)
     return r
 
 
@@ -402,11 +410,12 @@ def fig_load_reg():
         cross = ("never (sweep end)" if np.isinf(r["imax"]) else "from the start" if np.isnan(r["imax"])
                  else "%.2f mA" % (r["imax"] * 1e3))
         if r["regulating"]:
-            log("  VREF=%3.0f mV  VOUT(10mA)=%.2f mV  I_min=%.0f uA  LDR(%.1f-%.0f mA)=%.2f uV/mA "
-                "(VOUT %.2f -> %.2f mV)  fit(%.0f-%.0f mA)=%.2f uV/mA  VOUT<0.99*VREF: %s"
+            uv = lambda a: "n/a" if a is None else "%.2f" % (a * 1e3)   # V/A -> uV/mA
+            log("  VREF=%3.0f mV  VOUT(10mA)=%.2f mV  I_min=%.0f uA  LDR(%.1f-%.0f mA)=%s uV/mA "
+                "(VOUT %.2f -> %.2f mV)  fit(%.0f-%.0f mA)=%s uV/mA  VOUT<0.99*VREF: %s"
                 % (vr * 1e3, r["v_ref"] * 1e3, r["imin"] * 1e6, LDR_I0 * 1e3, r["i_hi"] * 1e3,
-                   r["ldr"] * 1e3, r["v0"] * 1e3, r["v1"] * 1e3, r["i_lo"] * 1e3, r["i_hi"] * 1e3,
-                   r["ldr_fit"] * 1e3, cross))
+                   uv(r["ldr"]), r["v0"] * 1e3, r["v1"] * 1e3, r["i_lo"] * 1e3, r["i_hi"] * 1e3,
+                   uv(r["ldr_fit"]), cross))
         else:
             log("  VREF=%3.0f mV  dropout at VIN = %s V: VOUT %.2f -> %.2f mV; VOUT<0.99*VREF: %s"
                 % (vr * 1e3, COND["ldr_vin"], v[0] * 1e3, v[-1] * 1e3, cross))
@@ -428,17 +437,21 @@ def fig_load_reg():
     xm = x[m] * 1e3
     drop = []
     for k, (vr, v, r) in enumerate(zip(vref, V.T, rs)):
-        ls = "-" if r["regulating"] else (":" if not drop else "--")
-        mk = sorted({int(np.argmin(np.abs(xm[:-1] - t))) for t in np.arange(2.5 + 2.5 * (k % 2), 48, 5)})
-        ax.plot(xm, v[m], color=SER[k], ls=ls, marker=MRK[k], mfc="white", markevery=mk)
+        ls = "-" if r["regulating"] else ((0, (1, 1.2)) if not drop else (0, (4, 2)))
+        # markers on an even linear grid (the sweep itself is log-spaced), staggered between series
+        tk = np.arange(2.5 + 2.5 * (k % 2), xm[-1] - 2, 5)
+        ax.plot(xm, v[m], color=SER[k], ls=ls)
+        ax.plot(tk, np.interp(tk, xm, v[m]), ls="none", color=SER[k], marker=MRK[k], mfc="white")
         if r["regulating"]:
-            txt(ax, 1.5, r["v_ref"] + 0.007, rf"$V_{{REF}}$ = {vr:.2f} V,  LDR = {r['ldr']*1e3:.1f} µV/mA",
-                va="bottom")
+            ldr = "" if r["ldr"] is None else f",  LDR = {r['ldr'] * 1e3:.1f} µV/mA"
+            txt(ax, 1.5, r["v_ref"] + 0.007, rf"$V_{{REF}}$ = {vr:.2f} V{ldr}", va="bottom")
         else:
-            drop.append((vr, ls))
+            drop.append((k, vr, ls))
     if drop:
-        keyed = " / ".join(f"{vr:.2f} V ({'···' if ls == ':' else '– –'})" for vr, ls in drop)
-        txt(ax, 1.5, 0.867, rf"$V_{{REF}}$ = {keyed}: dropout", va="bottom")
+        hs = [Line2D([], [], color=SER[k], ls=ls, marker=MRK[k], mfc="white") for k, _, ls in drop]
+        ax.legend(hs, [f"{vr:.2f} V" for _, vr, _ in drop], ncol=len(drop), loc="upper right",
+                  title=rf"$V_{{REF}}$ in dropout ($V_{{IN}}$ = {COND['ldr_vin']:.1f} V)",
+                  borderpad=0.3, borderaxespad=0.8, handlelength=2.4, columnspacing=1.2)
     ax.xaxis.set_major_locator(MultipleLocator(10))
     ax.xaxis.set_minor_locator(MultipleLocator(5))
     ax.yaxis.set_major_locator(MultipleLocator(0.05))
@@ -460,9 +473,12 @@ def fig_psr():
     il = [param(c) for c in cols[1:]]
     m = f <= PSR_FMAX * (1 + EPS)
     fig, ax = figure(COL_W, 2.5)
-    mk = list(np.searchsorted(f[m], 10 ** np.arange(1.5, np.log10(PSR_FMAX), 0.5)))
+    # one marker per decade per series, phases interleaved; stop before ~20 MHz where the curves merge
+    n = len(il)
+    tg = 10 ** np.arange(1.5, min(np.log10(f[m][-1]), 7.4), 1 / max(n, 2))
+    mk = [int(j) for j in np.searchsorted(f[m], tg)]
     for k, (i, p) in enumerate(zip(il, P.T)):
-        ax.semilogx(f[m], p[m], color=SER[k], marker=MRK[k], markevery=mk[k % 2::2] if len(il) > 2 else mk,
+        ax.semilogx(f[m], p[m], color=SER[k], marker=MRK[k], markevery=mk[k % max(n, 2)::max(n, 2)],
                     mfc="white", label=ma_label(i))
     log_axis(ax, hz=True)
     ax.set_xlim(f[0], PSR_FMAX)
@@ -485,6 +501,8 @@ def fig_psr():
         if up.size and up[0] > 0:      # first 0 dB crossing (log-interpolated)
             k = up[0]
             f0 = 10 ** np.interp(0, [p[k - 1], p[k]], np.log10([f[k - 1], f[k]]))
+        elif up.size:                  # already above 0 dB at the first frequency
+            f0 = f[0]
         pm = p[m]
         log(f"  ILOAD={ma_label(i)}: DC {p[0]:.1f} dB, "
             + ", ".join(f"{eng_hz(fx)}Hz {at(f, p, fx):.1f} dB" for fx in pts)

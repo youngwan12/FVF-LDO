@@ -12,7 +12,8 @@
 .option probe
 
 *---------------------------------------------------------------- params --
-.param vin=1.1          $ fixed VIN (>= VOUT,max + ~0.17 V dropout)
+.param vin=1.0          $ fixed VIN of data/loadR1.csv (VREF 0.85/0.90 V are in dropout here;
+*                         use 1.1-1.2 V to regulate them)
 .param vr=0.8           $ swept by .dc below
 
 *--------------------------------------------------------------- sources --
@@ -33,7 +34,7 @@ rlstb           OUT             OUT1    0
 
 *-------------------------------------------------------------- analysis --
 .op
-.dc iload dec 20 10u 200m   sweep vr 0.7 0.9 0.05
+.dc iload dec 20 10u 50m    sweep vr 0.7 0.9 0.05     $ data/loadR1.csv; extend to 200m for ILOAD,max
 
 .probe v(out) i(vvdd) i(vvss) i(iload)
 

@@ -20,15 +20,16 @@
   VREF=800 mV  VOUT=801.9 mV  VIN 0.962-1.20 V  dropout=160 mV  LNR=1.9 mV/V (slope -1.9, fit 1.00-1.20 V)
   VREF=850 mV  VOUT=851.9 mV  VIN 1.016-1.20 V  dropout=164 mV  LNR=2.0 mV/V (slope -2.0, fit 1.05-1.20 V)
   VREF=900 mV  VOUT=901.9 mV  VIN 1.068-1.20 V  dropout=166 mV  LNR=2.5 mV/V (slope -2.5, fit 1.10-1.20 V)
-[Load regulation]  DC sweep, VIN = 1.0 V;  LDR = -fit slope from max(I_min, 1 mA) to the sweep end; I_min: VOUT within 1 mV of VOUT(10 mA); 0.99*VREF crossing for ILOAD,max
-  VREF=700 mV  VOUT(10mA)=702.06 mV  I_min=178 uA  LDR(1-50 mA)=1.89 uV/mA  VOUT<0.99*VREF: never (sweep end)
-  VREF=750 mV  VOUT(10mA)=751.97 mV  I_min=10 uA  LDR(1-50 mA)=0.66 uV/mA  VOUT<0.99*VREF: never (sweep end)
-  VREF=800 mV  VOUT(10mA)=802.10 mV  I_min=10 uA  LDR(1-50 mA)=3.02 uV/mA  VOUT<0.99*VREF: never (sweep end)
+[Load regulation]  DC sweep, VIN = 1.0 V;  LDR = [VOUT(0.2 mA) - VOUT(end)] / dI (endpoint); fit: -slope over max(I_min, 1 mA)..end; I_min: VOUT within 1 mV of VOUT(10 mA); 0.99*VREF crossing for ILOAD,max
+  VREF=700 mV  VOUT(10mA)=702.06 mV  I_min=178 uA  LDR(0.2-50 mA)=9.79 uV/mA (VOUT 702.51 -> 702.02 mV)  fit(1-50 mA)=1.89 uV/mA  VOUT<0.99*VREF: never (sweep end)
+  VREF=750 mV  VOUT(10mA)=751.97 mV  I_min=10 uA  LDR(0.2-50 mA)=1.00 uV/mA (VOUT 752.00 -> 751.95 mV)  fit(1-50 mA)=0.66 uV/mA  VOUT<0.99*VREF: never (sweep end)
+  VREF=800 mV  VOUT(10mA)=802.10 mV  I_min=10 uA  LDR(0.2-50 mA)=3.61 uV/mA (VOUT 802.19 -> 802.01 mV)  fit(1-50 mA)=3.02 uV/mA  VOUT<0.99*VREF: never (sweep end)
   VREF=850 mV  dropout at VIN = 1.0 V: VOUT 849.99 -> 831.79 mV; VOUT<0.99*VREF: 4.85 mA
   VREF=900 mV  dropout at VIN = 1.0 V: VOUT 852.82 -> 831.81 mV; VOUT<0.99*VREF: from the start
-[PSR]  (DB20 v(out) for a unit AC source on VIN; negative = rejection)
-  ILOAD=100 µA: DC -41.9 dB, 1kHz -41.9 dB, 10kHz -41.6 dB, 100kHz -33.6 dB, 1MHz -14.6 dB, 10MHz -2.1 dB, worst +9.0 dB @ 398.1MHz
-  ILOAD=50 mA: DC -57.8 dB, 1kHz -57.1 dB, 10kHz -45.5 dB, 100kHz -25.8 dB, 1MHz -7.0 dB, 10MHz -0.9 dB, worst +2.1 dB @ 346.7MHz
+[PSR]  (DB20 v(out) for a unit AC source on VIN; negative = rejection; plotted to 100MHz)
+  ILOAD=100 µA: DC -41.9 dB, 1kHz -41.9 dB, 10kHz -41.6 dB, 100kHz -33.6 dB, 1MHz -14.6 dB, 10MHz -2.1 dB, 100MHz 1.9 dB, > 0 dB from 56MHz, max +1.9 dB (<= 100MHz), +9.0 dB @ 398.1MHz (full sweep)
+  ILOAD=50 mA: DC -57.8 dB, 1kHz -57.1 dB, 10kHz -45.5 dB, 100kHz -25.8 dB, 1MHz -7.0 dB, 10MHz -0.9 dB, 100MHz 0.3 dB, > 0 dB from 80.1MHz, max +0.3 dB (<= 100MHz), +2.1 dB @ 346.7MHz (full sweep)
+  ILOAD=140 mA: DC -24.1 dB, 1kHz -24.1 dB, 10kHz -23.3 dB, 100kHz -11.1 dB, 1MHz 0.3 dB, 10MHz 0.9 dB, 100MHz 1.0 dB, > 0 dB from 828kHz, max +1.0 dB (<= 100MHz), +1.0 dB @ 128.8MHz (full sweep)
 [Transient]  ILOAD 150 µA <-> 10 mA, edge 500 ns, T_S: from the step start until VOUT stays within +-0.5 mV (inclusive) of its final value
   VOUT=0.80 V: undershoot 2.7 mV, T_S 391 ns | overshoot 4.9 mV, T_S 582 ns
   VOUT=0.90 V: undershoot 2.9 mV, T_S 501 ns | overshoot 5.3 mV, T_S 598 ns

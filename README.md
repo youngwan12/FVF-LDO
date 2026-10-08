@@ -12,9 +12,9 @@ All computed values are also written to `figures/summary.json`.
 | Figure | Source | Content |
 |---|---|---|
 | fig1_max_load | maxload1.csv | (a) VOUT for load steps 150 µA → 10–150 mA, (b) steady-state / minimum VOUT vs ILOAD |
-| fig2_line_regulation | linR1.csv | VOUT vs VIN, VREF = 0.70–0.90 V |
-| fig3_load_regulation | loadR1.csv (DC sweep, `sim/loadreg_dc.sp`) | VOUT vs ILOAD per VREF, LDR [mV/mA], ILOAD,max |
-| fig4_psr | psr1.csv | PSR at ILOAD = 100 µA and 50 mA |
+| fig2_line_regulation | linR1.csv | VOUT vs VIN, VREF = 0.70–0.90 V (zoomed: VIN ≥ 0.8 V), LNR, V_DO |
+| fig3_load_regulation | loadR1.csv (DC sweep, `sim/loadreg_dc.sp`) | VOUT vs ILOAD per VREF on a linear axis from 0.2 mA, LDR = ΔVOUT/ΔILOAD over 0.2–50 mA |
+| fig4_psr | psr1.csv | PSR at ILOAD = 100 µA, 50 mA and 140 mA (max load), plotted to 100 MHz |
 | fig5_transient | tr1.csv | VOUT (0.8 V / 0.9 V) and ILOAD, 150 µA ↔ 10 mA |
 | fig6_transient_zoom | tr1.csv | zoom on rising (a) and falling (b) load steps |
 | fig7_current_efficiency | iq1.csv (DC sweep, preferred) or eff1.csv | current efficiency vs ILOAD |

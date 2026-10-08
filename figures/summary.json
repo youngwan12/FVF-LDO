@@ -177,6 +177,7 @@
  "load_reg": {
   "vin_V": 1.0,
   "sweep_end_mA": 50.0,
+  "ldr_from_mA": 0.2,
   "rows": [
    {
     "vref_V": 0.7,
@@ -184,9 +185,15 @@
     "vout_10mA_mV": 702.06,
     "vout_first_mV": 729.46,
     "vout_last_mV": 702.02,
+    "vout_at_ldr_start_mV": 702.51,
     "imin_uA": 178.0,
-    "ldr_uV_per_mA": 1.9,
+    "ldr_uV_per_mA": 9.8,
     "ldr_range_mA": [
+     0.2,
+     50.0
+    ],
+    "ldr_fit_uV_per_mA": 1.9,
+    "ldr_fit_range_mA": [
      1.0,
      50.0
     ],
@@ -199,9 +206,15 @@
     "vout_10mA_mV": 751.97,
     "vout_first_mV": 752.05,
     "vout_last_mV": 751.95,
+    "vout_at_ldr_start_mV": 752.0,
     "imin_uA": 10.0,
-    "ldr_uV_per_mA": 0.66,
+    "ldr_uV_per_mA": 1.0,
     "ldr_range_mA": [
+     0.2,
+     50.0
+    ],
+    "ldr_fit_uV_per_mA": 0.66,
+    "ldr_fit_range_mA": [
      1.0,
      50.0
     ],
@@ -214,9 +227,15 @@
     "vout_10mA_mV": 802.1,
     "vout_first_mV": 802.21,
     "vout_last_mV": 802.01,
+    "vout_at_ldr_start_mV": 802.19,
     "imin_uA": 10.0,
-    "ldr_uV_per_mA": 3.0,
+    "ldr_uV_per_mA": 3.6,
     "ldr_range_mA": [
+     0.2,
+     50.0
+    ],
+    "ldr_fit_uV_per_mA": 3.0,
+    "ldr_fit_range_mA": [
      1.0,
      50.0
     ],
@@ -229,9 +248,12 @@
     "vout_10mA_mV": 839.31,
     "vout_first_mV": 849.99,
     "vout_last_mV": 831.79,
+    "vout_at_ldr_start_mV": null,
     "imin_uA": null,
     "ldr_uV_per_mA": null,
     "ldr_range_mA": null,
+    "ldr_fit_uV_per_mA": null,
+    "ldr_fit_range_mA": null,
     "below_99pct_from_mA": 4.85,
     "below_99pct": "4.85 mA"
    },
@@ -241,9 +263,12 @@
     "vout_10mA_mV": 839.5,
     "vout_first_mV": 852.82,
     "vout_last_mV": 831.81,
+    "vout_at_ldr_start_mV": null,
     "imin_uA": null,
     "ldr_uV_per_mA": null,
     "ldr_range_mA": null,
+    "ldr_fit_uV_per_mA": null,
+    "ldr_fit_range_mA": null,
     "below_99pct_from_mA": null,
     "below_99pct": "from the start"
    }
@@ -258,6 +283,10 @@
    "at_100kHz_dB": -33.65,
    "at_1MHz_dB": -14.56,
    "at_10MHz_dB": -2.099,
+   "at_100MHz_dB": 1.861,
+   "zero_dB_crossing_Hz": 56000000.0,
+   "max_to_fmax_dB": 1.861,
+   "fmax_Hz": 100000000.0,
    "worst_dB": 8.995,
    "worst_f_Hz": 398100000.0
   },
@@ -269,8 +298,27 @@
    "at_100kHz_dB": -25.8,
    "at_1MHz_dB": -6.988,
    "at_10MHz_dB": -0.9349,
+   "at_100MHz_dB": 0.3237,
+   "zero_dB_crossing_Hz": 80100000.0,
+   "max_to_fmax_dB": 0.3237,
+   "fmax_Hz": 100000000.0,
    "worst_dB": 2.089,
    "worst_f_Hz": 346700000.0
+  },
+  {
+   "iload_mA": 140.0,
+   "dc_dB": -24.08,
+   "at_1kHz_dB": -24.07,
+   "at_10kHz_dB": -23.29,
+   "at_100kHz_dB": -11.14,
+   "at_1MHz_dB": 0.2625,
+   "at_10MHz_dB": 0.891,
+   "at_100MHz_dB": 0.9987,
+   "zero_dB_crossing_Hz": 828000.0,
+   "max_to_fmax_dB": 0.9987,
+   "fmax_Hz": 100000000.0,
+   "worst_dB": 1.016,
+   "worst_f_Hz": 128800000.0
   }
  ],
  "transient": {

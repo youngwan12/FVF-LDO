@@ -111,14 +111,18 @@ WARN = "#d62728"
 ARROW = dict(arrowstyle="<|-|>", mutation_scale=7, lw=0.8, color=INK, shrinkA=0, shrinkB=0)
 EPS = 1e-9
 
+LNR_X0 = 0.80      # line-regulation plot starts at this VIN [V] (zoom on the transition)
+LDR_I0 = 0.2e-3    # load-regulation plot and LDR start at this load current [A]
+PSR_FMAX = 100e6   # PSR plotted up to this frequency [Hz]
+
 
 def figure(w, h, **kw):
     return plt.subplots(figsize=(w, h), layout="constrained", **kw)
 
 
 def save(fig, name):
-    for ext in ("pdf", "png"):
-        fig.savefig(OUT / f"{name}.{ext}")
+    fig.savefig(OUT / f"{name}.pdf", metadata={"CreationDate": None})   # reproducible PDF bytes
+    fig.savefig(OUT / f"{name}.png")
     plt.close(fig)
     print(f"  -> figures/{name}.pdf/.png")
 
@@ -313,20 +317,33 @@ def fig_line_reg():
                                 lnr_mV_per_V=rnd(r["lnr"], 2), fit_V=[rnd(r["fit_lo"]), rnd(r["fit_hi"])])
                            for vr, r in zip(vref, rows)]
 
+    # Zoomed on the dropout-to-regulation transition (VIN >= LNR_X0); the deep-dropout
+    # region below it carries no information about the regulator.
     fig, ax = figure(COL_W, 2.75)
-    ax.plot([0.5, 1.2], [0.5, 1.2], ls="--", color=INK, lw=0.8)
-    txt(ax, 0.60, 0.645, r"$V_{OUT}$ = $V_{IN}$", rotation=37, ha="center", va="center", box=False)
+    x0, x1 = LNR_X0, vin[-1]
+    m = vin >= x0 - 0.02 - EPS
+    ax.plot([x0, x1], [x0, x1], ls="--", color=INK, lw=0.8)
+    txt(ax, 0.835, 0.872, r"$V_{OUT}$ = $V_{IN}$", rotation=45, transform_rotates_text=True,
+        rotation_mode="anchor", ha="left", va="bottom", box=False)
     for k, (vr, v, r) in enumerate(zip(vref, V.T, rows)):
-        ax.plot(vin, v, color=SER[k], marker=MRK[k], markevery=slice(k, len(vin) - 1, 5), mfc="white",
+        ax.plot(vin[m], v[m], color=SER[k], marker=MRK[k], markevery=slice(k % 3, None, 3), mfc="white",
                 label=f"{vr:.2f} V  ({r['lnr']:.1f})")
-    vdo = [r["vin_min"] - r["plateau"] for r in rows]
-    framed(ax, 0.03, 0.96, rf"$V_{{DO}}$ = {rng(np.array(vdo) * 1e3, '{:.0f}')} mV", va="top")
-    ax.set_xlim(0.5, 1.2)
-    ax.set_ylim(0.4, 1.0)
+    # dropout voltage of the second-highest VREF: VOUT = VIN line -> start of regulation
+    r = rows[-2]
+    y = r["plateau"]
+    ax.annotate("", (y, y), (r["vin_min"], y), arrowprops=ARROW, zorder=7)
+    txt(ax, (y + r["vin_min"]) / 2, y + 0.006, rf"$V_{{DO}}$ = {(r['vin_min'] - y) * 1e3:.0f} mV",
+        ha="center", va="bottom", box=False)
+    ax.set_xlim(x0, x1)
+    ax.set_ylim(0.60, 0.93)
+    ax.xaxis.set_major_locator(MultipleLocator(0.05))
+    ax.yaxis.set_major_locator(MultipleLocator(0.05))
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.2f}"))
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.2f}"))
     ax.set_xlabel("Input Voltage [V]")
     ax.set_ylabel("Output Voltage [V]")
-    ax.legend(title=r"$V_{REF}$  (LNR [mV/V])", loc="lower right", borderpad=0.4,
-              labelspacing=0.25, handlelength=1.8)
+    ax.legend(title=r"$V_{REF}$  (LNR [mV/V])", loc="lower right", ncol=3, borderpad=0.4,
+              labelspacing=0.25, handlelength=1.6, columnspacing=0.8, handletextpad=0.4)
     save(fig, "fig2_line_regulation")
 
 
@@ -337,7 +354,9 @@ def load_reg_metrics(x, v, vr, i_ref=10e-3, tol=1e-3, i_lo_min=1e-3):
     regulating : VOUT(i_ref) within 1 % of VREF (otherwise the curve is in dropout)
     imin       : lowest load from which VOUT stays within +-tol of VOUT(i_ref)
     imax       : first load where VOUT < 0.99*VREF (inf: never in the sweep, nan: from the start)
-    ldr        : -slope of a least-squares fit VOUT(ILOAD) over [max(imin, 1 mA), min(imax, end)]
+    ldr        : endpoint load regulation [VOUT(LDR_I0) - VOUT(i_hi)] / (i_hi - LDR_I0), V/A = mV/mA
+    ldr_fit    : -slope of a least-squares fit VOUT(ILOAD) over [max(imin, 1 mA), i_hi]
+    i_hi       : min(imax, sweep end)
     """
     lx = np.log10(x)
     v_ref = np.interp(np.log10(i_ref), lx, v)
@@ -350,8 +369,8 @@ def load_reg_metrics(x, v, vr, i_ref=10e-3, tol=1e-3, i_lo_min=1e-3):
     else:
         k = below[0]
         imax = 10 ** np.interp(0.99 * vr, [v[k], v[k - 1]], [lx[k], lx[k - 1]])
-    r = dict(regulating=bool(regulating), imax=imax, v_ref=v_ref, imin=None, ldr=None,
-             i_lo=None, i_hi=None)
+    r = dict(regulating=bool(regulating), imax=imax, v_ref=v_ref, imin=None, ldr=None, ldr_fit=None,
+             i_lo=None, i_hi=None, v0=None, v1=None)
     if regulating:
         ok = np.abs(v - v_ref) < tol
         bad = np.where(~ok[: np.searchsorted(x, i_ref)])[0]
@@ -359,7 +378,10 @@ def load_reg_metrics(x, v, vr, i_ref=10e-3, tol=1e-3, i_lo_min=1e-3):
         i_lo = max(imin, i_lo_min)
         i_hi = min(imax, x[-1]) if np.isfinite(imax) else x[-1]
         m = (x >= i_lo - EPS) & (x <= i_hi + EPS)
-        r.update(imin=imin, i_lo=i_lo, i_hi=i_hi, ldr=-np.polyfit(x[m], v[m], 1)[0])  # V/A = mV/mA
+        v0 = np.interp(np.log10(LDR_I0), lx, v)
+        v1 = np.interp(np.log10(i_hi), lx, v)
+        r.update(imin=imin, i_lo=i_lo, i_hi=i_hi, v0=v0, v1=v1, ldr=(v0 - v1) / (i_hi - LDR_I0),
+                 ldr_fit=-np.polyfit(x[m], v[m], 1)[0])
     return r
 
 
@@ -371,58 +393,63 @@ def fig_load_reg():
         log("[Load regulation]  !! VOUT does not change over the sweep -> load not swept; re-simulate")
         return
     rs = [load_reg_metrics(x, v, vr) for vr, v in zip(vref, V.T)]
-    log("[Load regulation]  DC sweep, VIN = %s V;  LDR = -fit slope from max(I_min, 1 mA) to the sweep end; "
-        "I_min: VOUT within 1 mV of VOUT(10 mA); 0.99*VREF crossing for ILOAD,max" % COND["ldr_vin"])
-    SUMMARY["load_reg"] = dict(vin_V=COND["ldr_vin"], sweep_end_mA=rnd(x[-1] * 1e3), rows=[])
+    log("[Load regulation]  DC sweep, VIN = %s V;  LDR = [VOUT(%.1f mA) - VOUT(end)] / dI (endpoint); "
+        "fit: -slope over max(I_min, 1 mA)..end; I_min: VOUT within 1 mV of VOUT(10 mA); "
+        "0.99*VREF crossing for ILOAD,max" % (COND["ldr_vin"], LDR_I0 * 1e3))
+    SUMMARY["load_reg"] = dict(vin_V=COND["ldr_vin"], sweep_end_mA=rnd(x[-1] * 1e3),
+                               ldr_from_mA=rnd(LDR_I0 * 1e3), rows=[])
     for vr, v, r in zip(vref, V.T, rs):
         cross = ("never (sweep end)" if np.isinf(r["imax"]) else "from the start" if np.isnan(r["imax"])
                  else "%.2f mA" % (r["imax"] * 1e3))
         if r["regulating"]:
-            log("  VREF=%3.0f mV  VOUT(10mA)=%.2f mV  I_min=%.0f uA  LDR(%.0f-%.0f mA)=%.2f uV/mA  "
-                "VOUT<0.99*VREF: %s" % (vr * 1e3, r["v_ref"] * 1e3, r["imin"] * 1e6, r["i_lo"] * 1e3,
-                                        r["i_hi"] * 1e3, r["ldr"] * 1e3, cross))
+            log("  VREF=%3.0f mV  VOUT(10mA)=%.2f mV  I_min=%.0f uA  LDR(%.1f-%.0f mA)=%.2f uV/mA "
+                "(VOUT %.2f -> %.2f mV)  fit(%.0f-%.0f mA)=%.2f uV/mA  VOUT<0.99*VREF: %s"
+                % (vr * 1e3, r["v_ref"] * 1e3, r["imin"] * 1e6, LDR_I0 * 1e3, r["i_hi"] * 1e3,
+                   r["ldr"] * 1e3, r["v0"] * 1e3, r["v1"] * 1e3, r["i_lo"] * 1e3, r["i_hi"] * 1e3,
+                   r["ldr_fit"] * 1e3, cross))
         else:
             log("  VREF=%3.0f mV  dropout at VIN = %s V: VOUT %.2f -> %.2f mV; VOUT<0.99*VREF: %s"
                 % (vr * 1e3, COND["ldr_vin"], v[0] * 1e3, v[-1] * 1e3, cross))
         SUMMARY["load_reg"]["rows"].append(dict(
             vref_V=rnd(vr), regulating=r["regulating"], vout_10mA_mV=rnd(r["v_ref"] * 1e3, 5),
             vout_first_mV=rnd(v[0] * 1e3, 5), vout_last_mV=rnd(v[-1] * 1e3, 5),
+            vout_at_ldr_start_mV=rnd(r["v0"] * 1e3, 5) if r["v0"] is not None else None,
             imin_uA=rnd(r["imin"] * 1e6, 3) if r["imin"] else None,
             ldr_uV_per_mA=rnd(r["ldr"] * 1e3, 2) if r["ldr"] is not None else None,
-            ldr_range_mA=[rnd(r["i_lo"] * 1e3), rnd(r["i_hi"] * 1e3)] if r["i_lo"] else None,
+            ldr_range_mA=[rnd(LDR_I0 * 1e3), rnd(r["i_hi"] * 1e3)] if r["i_hi"] else None,
+            ldr_fit_uV_per_mA=rnd(r["ldr_fit"] * 1e3, 2) if r["ldr_fit"] is not None else None,
+            ldr_fit_range_mA=[rnd(r["i_lo"] * 1e3), rnd(r["i_hi"] * 1e3)] if r["i_lo"] else None,
             below_99pct_from_mA=None if not np.isfinite(r["imax"]) else rnd(r["imax"] * 1e3, 3),
             below_99pct=cross))
 
+    # Linear current axis from LDR_I0 (below it the 0.70 V curve is not yet regulating).
     fig, ax = figure(COL_W, 2.75)
+    m = x >= LDR_I0 * 0.99
+    xm = x[m] * 1e3
     drop = []
     for k, (vr, v, r) in enumerate(zip(vref, V.T, rs)):
         ls = "-" if r["regulating"] else (":" if not drop else "--")
-        ax.semilogx(x * 1e3, v, color=SER[k], ls=ls, marker=MRK[k], mfc="white",
-                    markevery=slice(2 + 4 * (k % 2), len(x) - 2, 8))
+        mk = sorted({int(np.argmin(np.abs(xm[:-1] - t))) for t in np.arange(2.5 + 2.5 * (k % 2), 48, 5)})
+        ax.plot(xm, v[m], color=SER[k], ls=ls, marker=MRK[k], mfc="white", markevery=mk)
         if r["regulating"]:
-            txt(ax, 0.3, r["v_ref"] + 0.007, rf"$V_{{REF}}$ = {vr:.2f} V", va="bottom")
-            txt(ax, 40, r["v_ref"] - 0.007, f"LDR = {r['ldr']*1e3:.1f} µV/mA", ha="right", va="top")
-            if r["imin"] > x[0]:
-                vy = np.interp(np.log10(r["imin"]), np.log10(x), v)
-                ax.plot(r["imin"] * 1e3, vy, "o", ms=3.2, color=INK, zorder=7)
-                ax.annotate(rf"$I_{{min}}$ = {r['imin']*1e6:.0f} µA", (r["imin"] * 1e3, vy),
-                            (r["imin"] * 1e3 * 0.42, vy - 0.025), fontsize=ANN, ha="center",
-                            arrowprops=dict(arrowstyle="-", lw=0.6, color=INK), zorder=7,
-                            bbox=dict(boxstyle="square,pad=0.12", fc="white", ec="none"))
+            txt(ax, 1.5, r["v_ref"] + 0.007, rf"$V_{{REF}}$ = {vr:.2f} V,  LDR = {r['ldr']*1e3:.1f} µV/mA",
+                va="bottom")
         else:
             drop.append((vr, ls))
     if drop:
         keyed = " / ".join(f"{vr:.2f} V ({'···' if ls == ':' else '– –'})" for vr, ls in drop)
-        txt(ax, 0.013, 0.867, rf"$V_{{REF}}$ = {keyed}: dropout", va="bottom")
-    log_axis(ax)
+        txt(ax, 1.5, 0.867, rf"$V_{{REF}}$ = {keyed}: dropout", va="bottom")
+    ax.xaxis.set_major_locator(MultipleLocator(10))
+    ax.xaxis.set_minor_locator(MultipleLocator(5))
     ax.yaxis.set_major_locator(MultipleLocator(0.05))
     ax.yaxis.set_minor_locator(MultipleLocator(0.025))
     ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:.2f}"))
     ax.set_xlabel("Load Current [mA]")
     ax.set_ylabel("Output Voltage [V]")
-    ax.set_xlim(x[0] * 1e3, x[-1] * 1e3)
+    ax.set_xlim(0, x[-1] * 1e3)
     ax.set_ylim(0.66, 0.90)
-    framed(ax, 0.97, 0.03, rf"$V_{{IN}}$ = {COND['ldr_vin']:.1f} V", ha="right", va="bottom")
+    framed(ax, 0.97, 0.03, rf"$V_{{IN}}$ = {COND['ldr_vin']:.1f} V" "\n"
+           rf"$I_{{LOAD}}$ = {LDR_I0 * 1e3:g}–{x[-1] * 1e3:g} mA", ha="right", va="bottom")
     save(fig, "fig3_load_regulation")
 
 
@@ -431,17 +458,15 @@ def fig_psr():
     cols, d = load("psr1.csv")
     f, P = d[:, 0], d[:, 1:]
     il = [param(c) for c in cols[1:]]
+    m = f <= PSR_FMAX * (1 + EPS)
     fig, ax = figure(COL_W, 2.5)
-    mk = list(np.searchsorted(f, 10 ** np.arange(1.5, 8.99, 0.5)))
+    mk = list(np.searchsorted(f[m], 10 ** np.arange(1.5, np.log10(PSR_FMAX), 0.5)))
     for k, (i, p) in enumerate(zip(il, P.T)):
-        ax.semilogx(f, p, color=SER[k], marker=MRK[k], markevery=mk, mfc="white", label=ma_label(i))
-    kp = int(np.argmax(P.max(0)))
-    p = P[:, kp]
-    txt(ax, f[p.argmax()] / 1.6, p.max() + 1.5, f"+{p.max():.1f} dB @ {f[p.argmax()]/1e6:.0f} MHz",
-        ha="right", va="bottom")
+        ax.semilogx(f[m], p[m], color=SER[k], marker=MRK[k], markevery=mk[k % 2::2] if len(il) > 2 else mk,
+                    mfc="white", label=ma_label(i))
     log_axis(ax, hz=True)
-    ax.set_xlim(f[0], f[-1])
-    ax.set_ylim(-70, 20)
+    ax.set_xlim(f[0], PSR_FMAX)
+    ax.set_ylim(-70, 10)
     ax.yaxis.set_major_locator(MultipleLocator(10))
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel("PSR [dB]")
@@ -450,15 +475,26 @@ def fig_psr():
         framed(ax, 0.03, 0.95, rf"$V_{{IN}}$ = {COND['psr_vin']:.2f} V" "\n"
                rf"$V_{{OUT}}$ = {COND['psr_vout']:.2f} V", va="top")
     save(fig, "fig4_psr")
-    log("[PSR]  (DB20 v(out) for a unit AC source on VIN; negative = rejection)")
-    pts = (1e3, 1e4, 1e5, 1e6, 1e7)
+    log("[PSR]  (DB20 v(out) for a unit AC source on VIN; negative = rejection; plotted to %sHz)"
+        % eng_hz(PSR_FMAX))
+    pts = (1e3, 1e4, 1e5, 1e6, 1e7, 1e8)
     SUMMARY["psr"] = []
     for i, p in zip(il, P.T):
+        up = np.where(p > 0)[0]
+        f0 = None
+        if up.size and up[0] > 0:      # first 0 dB crossing (log-interpolated)
+            k = up[0]
+            f0 = 10 ** np.interp(0, [p[k - 1], p[k]], np.log10([f[k - 1], f[k]]))
+        pm = p[m]
         log(f"  ILOAD={ma_label(i)}: DC {p[0]:.1f} dB, "
             + ", ".join(f"{eng_hz(fx)}Hz {at(f, p, fx):.1f} dB" for fx in pts)
-            + f", worst {p.max():+.1f} dB @ {eng_hz(f[p.argmax()])}Hz")
+            + (f", > 0 dB from {eng_hz(rnd(f0, 3))}Hz" if f0 else "")
+            + f", max {pm.max():+.1f} dB (<= {eng_hz(PSR_FMAX)}Hz), "
+            f"{p.max():+.1f} dB @ {eng_hz(f[p.argmax()])}Hz (full sweep)")
         SUMMARY["psr"].append(dict(iload_mA=rnd(i * 1e3), dc_dB=rnd(p[0]),
                                    **{f"at_{eng_hz(fx)}Hz_dB": rnd(at(f, p, fx)) for fx in pts},
+                                   zero_dB_crossing_Hz=rnd(f0, 3) if f0 else None,
+                                   max_to_fmax_dB=rnd(pm.max()), fmax_Hz=PSR_FMAX,
                                    worst_dB=rnd(p.max()), worst_f_Hz=rnd(f[p.argmax()])))
 
 

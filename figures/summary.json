@@ -345,10 +345,10 @@
  },
  "efficiency": {
   "source": "eff1.csv (transient)",
-  "peak_pct": 99.828,
-  "peak_at_mA": 140.0,
+  "peak_pct": 99.483,
+  "peak_at_mA": 50.0,
   "iq_range_uA": [
-   240.8,
+   259.6,
    269.3
   ],
   "rows": [

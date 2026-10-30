@@ -1,4 +1,4 @@
-[Max load]  light-load VOUT = 802.2 mV;  ILOAD,max = 140 mA (largest load with steady-state drop <= 1 mV)
+[Max load]  light-load VOUT = 802.2 mV;  steady-state limit = 140 mA (largest load with steady-state drop <= 1 mV); ILOAD,max = 50 mA (all metrics verified)
   ILOAD=   10 mA  VOUT(<5us)=802.1 mV  dV_ss=0.1 mV  undershoot=2.7 mV  overshoot=4.9 mV
   ILOAD=   20 mA  VOUT(<5us)=802.1 mV  dV_ss=0.1 mV  undershoot=3.7 mV  overshoot=7.6 mV
   ILOAD=   30 mA  VOUT(<5us)=802.1 mV  dV_ss=0.1 mV  undershoot=5.2 mV  overshoot=9.8 mV
@@ -33,7 +33,7 @@
 [Transient]  ILOAD 150 µA <-> 10 mA, edge 500 ns, T_S: from the step start until VOUT stays within +-0.5 mV (inclusive) of its final value
   VOUT=0.80 V: undershoot 2.7 mV, T_S 391 ns | overshoot 4.9 mV, T_S 582 ns
   VOUT=0.90 V: undershoot 2.9 mV, T_S 501 ns | overshoot 5.3 mV, T_S 598 ns
-[Current efficiency]  (transient eff1.csv: IQ = i(vvss) at the last sample before each step; peak within ILOAD,max = 140 mA)
+[Current efficiency]  (transient eff1.csv: IQ = i(vvss) at the last sample before each step; peak within ILOAD,max = 50 mA)
   ILOAD=   0.150 mA  IQ=269.3 uA  eta=35.77 %
   ILOAD=  10.000 mA  IQ=264.2 uA  eta=97.43 %
   ILOAD=  20.000 mA  IQ=262.7 uA  eta=98.70 %

@@ -236,8 +236,9 @@ def fig_maxload():
     ok = il[(v0 - vss) <= MAXLOAD_DV + EPS]
     imax = ok.max()
 
-    log("[Max load]  light-load VOUT = %.1f mV;  ILOAD,max = %.0f mA (largest load with "
-        "steady-state drop <= %.0f mV)" % (v0 * 1e3, imax * 1e3, MAXLOAD_DV * 1e3))
+    log("[Max load]  light-load VOUT = %.1f mV;  steady-state limit = %.0f mA (largest load with "
+        "steady-state drop <= %.0f mV); ILOAD,max = %.0f mA (all metrics verified)"
+        % (v0 * 1e3, imax * 1e3, MAXLOAD_DV * 1e3, IMAX_VERIFIED * 1e3))
     for i, vs, vm, vx in zip(il, vss, vmin, vmax):
         log("  ILOAD=%5.0f mA  VOUT(<5us)=%.1f mV  dV_ss=%.1f mV  undershoot=%.1f mV  overshoot=%.1f mV"
             % (i * 1e3, vs * 1e3, (v0 - vs) * 1e3, (v0 - vm) * 1e3, (vx - v0) * 1e3))
@@ -267,7 +268,9 @@ def fig_maxload():
                                    (vmin, "Minimum (undershoot)")]):
         ax2.plot(il * 1e3, y * 1e3, marker=MRK[k], color=SER[k], mfc="white", label=lab_)
     ax2.axvline(imax * 1e3, color=MUTED, ls=":", lw=0.8)
-    txt(ax2, imax * 1e3 - 2, 795, rf"$I_{{LOAD,max}}$ ≈ {imax*1e3:.0f} mA", ha="right", va="center")
+    txt(ax2, imax * 1e3 - 2, 795, rf"$\Delta V_{{ss}}$ ≤ 1 mV: {imax*1e3:.0f} mA", ha="right", va="center")
+    ax2.axvline(IMAX_VERIFIED * 1e3, color=INK, ls=":", lw=0.9)
+    txt(ax2, IMAX_VERIFIED * 1e3 + 2, 781, r"$I_{LOAD,max}$ = 50 mA", va="center")
     ax2.set_xlabel("Load Current [mA]\n(b)")
     ax2.set_ylabel(r"$V_{OUT}$ [mV]")
     ax2.set_xlim(0, 160)
@@ -707,7 +710,7 @@ def fig_efficiency(imax):
     ax.set_ylim(25, 102)
     ax.set_xlabel("Load Current [mA]")
     ax.set_ylabel("Current Efficiency [%]")
-    ax.legend(loc="lower right", title=f"Peak = {eta[jp]:.2f}% @ {x[jp]*1e3:.0f} mA\n"
+    ax.legend(loc="lower right", title=rf"{eta[jp]:.2f}% @ $I_{{LOAD,max}}$ = {x[jp]*1e3:.0f} mA" "\n"
               rf"$I_Q$ = {rng(q[reg] * 1e6, '{:.0f}')} µA", handlelength=1.6)
     save(fig, "fig7_current_efficiency")
     log("[Current efficiency]  (transient eff1.csv: IQ = i(vvss) at the last sample before each step; "
@@ -925,12 +928,12 @@ def fig_loop_vs_load():
 
 
 if __name__ == "__main__":
-    imax = fig_maxload()
+    fig_maxload()                       # steady-state limit only (140 mA); ILOAD,max is IMAX_VERIFIED
     fig_line_reg()
     fig_load_reg()
     fig_psr()
     fig_transient()
-    fig_efficiency(imax)
+    fig_efficiency(IMAX_VERIFIED)
     # stb1.csv phase columns were exported as dB of the phase -> undo it
     fig_stability("stb1.csv", "fig8a_stability_overall_loop", phase_db=True)
     fig_stability("f_stb1.csv", "fig8b_stability_fast_loop")

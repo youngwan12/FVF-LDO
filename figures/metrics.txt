@@ -64,3 +64,19 @@
   ILOAD=30.1 mA  DC gain=39.0 dB  UGF=349.7 MHz  PM=89.1 deg
   ILOAD=40.1 mA  DC gain=37.8 dB  UGF=316.1 MHz  PM=89.5 deg
   ILOAD=50.1 mA  DC gain=36.5 dB  UGF=283.1 MHz  PM=89.9 deg
+[Load step]  150 uA -> ILOAD, edge 500 ns, T_S band +-0.5 mV from the step start
+  ILOAD=   10 mA  US=2.7 mV  OS=4.9 mV  T_S(up)=389 ns  T_S(down)=575 ns  dV_ss=0.1 mV
+  ILOAD=   20 mA  US=3.7 mV  OS=7.6 mV  T_S(up)=506 ns  T_S(down)=590 ns  dV_ss=0.1 mV
+  ILOAD=   30 mA  US=5.2 mV  OS=9.8 mV  T_S(up)=530 ns  T_S(down)=601 ns  dV_ss=0.1 mV
+  ILOAD=   40 mA  US=6.7 mV  OS=11.6 mV  T_S(up)=552 ns  T_S(down)=605 ns  dV_ss=0.2 mV
+  ILOAD=   50 mA  US=8.1 mV  OS=13.3 mV  T_S(up)=573 ns  T_S(down)=610 ns  dV_ss=0.2 mV
+  ILOAD=   60 mA  US=9.5 mV  OS=14.8 mV  T_S(up)=578 ns  T_S(down)=614 ns  dV_ss=0.2 mV
+  ILOAD=   70 mA  US=10.7 mV  OS=16.2 mV  T_S(up)=607 ns  T_S(down)=617 ns  dV_ss=0.2 mV
+  ILOAD=   80 mA  US=11.8 mV  OS=17.6 mV  T_S(up)=640 ns  T_S(down)=621 ns  dV_ss=0.2 mV
+  ILOAD=   90 mA  US=12.9 mV  OS=18.9 mV  T_S(up)=673 ns  T_S(down)=625 ns  dV_ss=0.3 mV
+  ILOAD=  100 mA  US=13.9 mV  OS=20.2 mV  T_S(up)=724 ns  T_S(down)=626 ns  dV_ss=0.3 mV
+  ILOAD=  110 mA  US=15.1 mV  OS=21.4 mV  T_S(up)=794 ns  T_S(down)=631 ns  dV_ss=0.3 mV
+  ILOAD=  120 mA  US=16.1 mV  OS=22.6 mV  T_S(up)=866 ns  T_S(down)=632 ns  dV_ss=0.4 mV
+  ILOAD=  130 mA  US=17.1 mV  OS=24.0 mV  T_S(up)=1020 ns  T_S(down)=636 ns  dV_ss=0.5 mV
+  ILOAD=  140 mA  US=18.0 mV  OS=25.8 mV  T_S(up)=1450 ns  T_S(down)=641 ns  dV_ss=0.7 mV
+  ILOAD=  150 mA  US=18.9 mV  OS=32.2 mV  T_S(up)=2600 ns  T_S(down)=671 ns  dV_ss=1.4 mV

@@ -841,6 +841,89 @@ def fig_stability(fname, outname, phase_db=False):
     save(fig, outname)
 
 
+# --------------------------------------- 9. Load-step summary (maxload1) ----
+IMAX_VERIFIED = 50e-3   # largest load where stability, PSR, load regulation and transient were all simulated
+
+
+def fig_load_step():
+    """Undershoot/overshoot, T_S and steady-state drop versus the load-step size (150 uA -> ILOAD)."""
+    cols, d = load("maxload1.csv")
+    t, V = d[:, 0] * 1e6, d[:, 1:]
+    il = np.array([param(c) for c in cols[1:]]) * 1e3
+    rows = []
+    for k, i in enumerate(il):
+        v = V[:, k]
+        v0, vss = before(t, v, 1.0), before(t, v, 5.0)
+        rows.append(dict(iload_mA=rnd(i), us_mV=rnd((v0 - v[(t > 1) & (t < 5)].min()) * 1e3, 3),
+                         os_mV=rnd((v[(t > 5) & (t < 10)].max() - v0) * 1e3, 3),
+                         ts_up_ns=rnd(settle_time(t, v, 1.0, TS_BAND, 5.0) * 1e3, 3),
+                         ts_dn_ns=rnd(settle_time(t, v, 5.0, TS_BAND, t[-1]) * 1e3, 3),
+                         dv_ss_mV=rnd((v0 - vss) * 1e3, 2)))
+    SUMMARY["load_step"] = dict(edge_ns=T_EDGE * 1e3, ts_band_mV=TS_BAND * 1e3, rows=rows)
+    log("[Load step]  150 uA -> ILOAD, edge %.0f ns, T_S band +-%.1f mV from the step start"
+        % (T_EDGE * 1e3, TS_BAND * 1e3))
+    for r in rows:
+        log("  ILOAD=%5.0f mA  US=%.1f mV  OS=%.1f mV  T_S(up)=%.0f ns  T_S(down)=%.0f ns  dV_ss=%.1f mV"
+            % (r["iload_mA"], r["us_mV"], r["os_mV"], r["ts_up_ns"], r["ts_dn_ns"], r["dv_ss_mV"]))
+    g = lambda key: np.array([r[key] for r in rows])
+    fig, (a1, a2, a3) = figure(COL_W, 4.6, nrows=3, sharex=True)
+    a1.plot(il, g("os_mV"), color=SER[1], marker=MRK[1], mfc="white", label="Overshoot")
+    a1.plot(il, g("us_mV"), color=SER[0], marker=MRK[0], mfc="white", label="Undershoot")
+    a1.set_ylabel("ΔV [mV]")
+    a1.set_ylim(0, 35)
+    a1.legend(loc="upper left", handlelength=1.6)
+    a2.plot(il, g("ts_up_ns") / 1e3, color=SER[0], marker=MRK[0], mfc="white", label="Load ↑")
+    a2.plot(il, g("ts_dn_ns") / 1e3, color=SER[1], marker=MRK[1], mfc="white", label="Load ↓")
+    a2.set_ylabel(r"$T_S$ [µs]")
+    a2.set_ylim(0, 2.8)
+    a2.legend(loc="upper left", handlelength=1.6)
+    a3.plot(il, g("dv_ss_mV"), color=SER[2], marker=MRK[2], mfc="white")
+    a3.axhline(MAXLOAD_DV * 1e3, color=WARN, ls="--", lw=0.8)
+    txt(a3, 12, MAXLOAD_DV * 1e3 + 0.06, "1 mV", color=WARN, va="bottom")
+    a3.set_ylabel(r"Δ$V_{OUT,ss}$ [mV]")
+    a3.set_ylim(0, 1.6)
+    a3.set_xlabel("Load Step 150 µA → $I_{LOAD}$ [mA]")
+    a3.set_xlim(0, 155)
+    a3.xaxis.set_major_locator(MultipleLocator(20))
+    for a in (a1, a2, a3):
+        a.axvline(IMAX_VERIFIED * 1e3, color=INK, ls=":", lw=0.9)
+    txt(a1, IMAX_VERIFIED * 1e3 + 2, 31, r"$I_{LOAD,max}$ = 50 mA", va="center")
+    fig.align_ylabels((a1, a2, a3))
+    save(fig, "fig9_load_step")
+
+
+def fig_loop_vs_load():
+    """UGF and PM of both loops versus load current (from the lstb exports)."""
+    st = SUMMARY["stability"]
+    fig, (a1, a2) = figure(COL_W, 3.3, nrows=2, sharex=True)
+    for k, (key, name) in enumerate((("fig8a_stability_overall_loop", "Overall loop"),
+                                     ("fig8b_stability_fast_loop", "Fast loop"))):
+        r = st[key]
+        x = np.array([q["iload_mA"] for q in r])
+        for a, y in ((a1, [q["ugf_MHz"] for q in r]), (a2, [q["pm_deg"] for q in r])):
+            # no data between 100 uA and 10 mA: dotted joint instead of an implied trend
+            a.semilogx(x[:2], y[:2], color=SER[k], ls=":", lw=0.9)
+            a.semilogx(x[1:], y[1:], color=SER[k], marker=MRK[k], mfc="white", label=name)
+            a.semilogx(x[:1], y[:1], color=SER[k], marker=MRK[k], mfc="white", ls="none")
+    ratio = min(f["ugf_MHz"] / o["ugf_MHz"] for f, o in zip(st["fig8b_stability_fast_loop"],
+                                                            st["fig8a_stability_overall_loop"]))
+    txt(a1, 0.085, 50, rf"UGF$_{{fast}}$ / UGF$_{{overall}}$ ≥ {ratio:.0f}×", va="center", ha="left")
+    a1.set_yscale("log")
+    a1.set_ylim(8, 800)
+    a1.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:g}"))
+    a1.set_ylabel("UGF [MHz]")
+    a1.legend(loc="center right", handlelength=1.6)
+    a2.set_ylabel("PM [°]")
+    a2.set_ylim(30, 100)
+    a2.yaxis.set_major_locator(MultipleLocator(15))
+    a2.axhline(45, color=WARN, ls="--", lw=0.8)
+    a2.set_xlabel("Load Current [mA]")
+    log_axis(a2)
+    a2.set_xlim(0.07, 70)
+    fig.align_ylabels((a1, a2))
+    save(fig, "fig10_loop_vs_load")
+
+
 if __name__ == "__main__":
     imax = fig_maxload()
     fig_line_reg()
@@ -851,5 +934,7 @@ if __name__ == "__main__":
     # stb1.csv phase columns were exported as dB of the phase -> undo it
     fig_stability("stb1.csv", "fig8a_stability_overall_loop", phase_db=True)
     fig_stability("f_stb1.csv", "fig8b_stability_fast_loop")
+    fig_load_step()
+    fig_loop_vs_load()
     (OUT / "metrics.txt").write_text("\n".join(metrics) + "\n")
     (OUT / "summary.json").write_text(json.dumps(SUMMARY, indent=1, ensure_ascii=False) + "\n")

@@ -511,5 +511,131 @@
     "pm_deg": 89.9
    }
   ]
+ },
+ "load_step": {
+  "edge_ns": 500.0,
+  "ts_band_mV": 0.5,
+  "rows": [
+   {
+    "iload_mA": 10.0,
+    "us_mV": 2.7,
+    "os_mV": 4.9,
+    "ts_up_ns": 389.0,
+    "ts_dn_ns": 575.0,
+    "dv_ss_mV": 0.1
+   },
+   {
+    "iload_mA": 20.0,
+    "us_mV": 3.7,
+    "os_mV": 7.6,
+    "ts_up_ns": 506.0,
+    "ts_dn_ns": 590.0,
+    "dv_ss_mV": 0.1
+   },
+   {
+    "iload_mA": 30.0,
+    "us_mV": 5.2,
+    "os_mV": 9.8,
+    "ts_up_ns": 530.0,
+    "ts_dn_ns": 601.0,
+    "dv_ss_mV": 0.1
+   },
+   {
+    "iload_mA": 40.0,
+    "us_mV": 6.7,
+    "os_mV": 11.6,
+    "ts_up_ns": 552.0,
+    "ts_dn_ns": 605.0,
+    "dv_ss_mV": 0.2
+   },
+   {
+    "iload_mA": 50.0,
+    "us_mV": 8.1,
+    "os_mV": 13.3,
+    "ts_up_ns": 573.0,
+    "ts_dn_ns": 610.0,
+    "dv_ss_mV": 0.2
+   },
+   {
+    "iload_mA": 60.0,
+    "us_mV": 9.5,
+    "os_mV": 14.8,
+    "ts_up_ns": 578.0,
+    "ts_dn_ns": 614.0,
+    "dv_ss_mV": 0.2
+   },
+   {
+    "iload_mA": 70.0,
+    "us_mV": 10.7,
+    "os_mV": 16.2,
+    "ts_up_ns": 607.0,
+    "ts_dn_ns": 617.0,
+    "dv_ss_mV": 0.2
+   },
+   {
+    "iload_mA": 80.0,
+    "us_mV": 11.8,
+    "os_mV": 17.6,
+    "ts_up_ns": 640.0,
+    "ts_dn_ns": 621.0,
+    "dv_ss_mV": 0.2
+   },
+   {
+    "iload_mA": 90.0,
+    "us_mV": 12.9,
+    "os_mV": 18.9,
+    "ts_up_ns": 673.0,
+    "ts_dn_ns": 625.0,
+    "dv_ss_mV": 0.3
+   },
+   {
+    "iload_mA": 100.0,
+    "us_mV": 13.9,
+    "os_mV": 20.2,
+    "ts_up_ns": 724.0,
+    "ts_dn_ns": 626.0,
+    "dv_ss_mV": 0.3
+   },
+   {
+    "iload_mA": 110.0,
+    "us_mV": 15.1,
+    "os_mV": 21.4,
+    "ts_up_ns": 794.0,
+    "ts_dn_ns": 631.0,
+    "dv_ss_mV": 0.3
+   },
+   {
+    "iload_mA": 120.0,
+    "us_mV": 16.1,
+    "os_mV": 22.6,
+    "ts_up_ns": 866.0,
+    "ts_dn_ns": 632.0,
+    "dv_ss_mV": 0.4
+   },
+   {
+    "iload_mA": 130.0,
+    "us_mV": 17.1,
+    "os_mV": 24.0,
+    "ts_up_ns": 1020.0,
+    "ts_dn_ns": 636.0,
+    "dv_ss_mV": 0.5
+   },
+   {
+    "iload_mA": 140.0,
+    "us_mV": 18.0,
+    "os_mV": 25.8,
+    "ts_up_ns": 1450.0,
+    "ts_dn_ns": 641.0,
+    "dv_ss_mV": 0.7
+   },
+   {
+    "iload_mA": 150.0,
+    "us_mV": 18.9,
+    "os_mV": 32.2,
+    "ts_up_ns": 2600.0,
+    "ts_dn_ns": 671.0,
+    "dv_ss_mV": 1.4
+   }
+  ]
  }
 }

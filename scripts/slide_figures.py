@@ -78,7 +78,7 @@ def s_load_steps():
     cols, d = load("maxload1.csv")
     t, V = d[:, 0] * 1e6, d[:, 1:]
     il = np.array([param(c) for c in cols[1:]])
-    fig, ax = sfig(940, 590)
+    fig, ax = sfig(900, 560)
     for c, k in reversed(list(zip(SER, [0, 4, 9, 12, 13, 14]))):     # largest load drawn first
         ax.plot(t, V[:, k] * 1e3, color=c, label=f"{il[k] * 1e3:.0f} mA")
     h, lab = ax.get_legend_handles_labels()
@@ -96,7 +96,7 @@ def s_load_step():
     rows = F.SUMMARY["load_step"]["rows"]
     il = np.array([r["iload_mA"] for r in rows])
     g = lambda key: np.array([r[key] for r in rows])
-    fig, (a1, a2, a3) = sfig(700, 770, nrows=3, sharex=True)
+    fig, (a1, a2, a3) = sfig(700, 590, nrows=3, sharex=True)
     a1.plot(il, g("os_mV"), color=SER[1], marker=MRK[1], mfc="white", label="Overshoot")
     a1.plot(il, g("us_mV"), color=SER[0], marker=MRK[0], mfc="white", label="Undershoot")
     txt(a1, 108, 27.5, "Overshoot", color=SER[1], ha="right", va="center", bbox=None)
@@ -107,9 +107,9 @@ def s_load_step():
     a2.plot(il, g("ts_up_ns") / 1e3, color=SER[0], marker=MRK[0], mfc="white", label="Load ↑")
     a2.plot(il, g("ts_dn_ns") / 1e3, color=SER[1], marker=MRK[1], mfc="white", label="Load ↓")
     a2.set_ylabel("Ts [µs]")
-    a2.set_ylim(0, 2.9)
+    a2.set_ylim(0, 3.4)
     a2.yaxis.set_major_locator(MultipleLocator(1))
-    a2.legend(loc="upper left", borderaxespad=0.4)
+    a2.legend(loc="upper left", ncol=2, borderaxespad=0.3, columnspacing=1.0, borderpad=0.3)
     a3.plot(il, g("dv_ss_mV"), color=SER[2], marker=MRK[2], mfc="white")
     a3.axhline(F.MAXLOAD_DV * 1e3, color=WARN, ls="--", lw=1.6)
     txt(a3, 6, F.MAXLOAD_DV * 1e3 + 0.08, "1 mV", color=WARN, va="bottom")
@@ -243,7 +243,7 @@ def s_psr():
     f, P = d[:, 0], d[:, 1:]
     il = [param(c) for c in cols[1:]]
     m = f <= F.PSR_FMAX * (1 + EPS)
-    fig, ax = sfig(880, 630)
+    fig, ax = sfig(1000, 560)
     n = len(il)
     tg = 10 ** np.arange(1.5, min(np.log10(f[m][-1]), 7.4), 1 / n)
     mk = [int(j) for j in np.searchsorted(f[m], tg)]

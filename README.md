@@ -20,3 +20,10 @@ All computed values are also written to `figures/summary.json`.
 | fig7_current_efficiency | iq1.csv (DC sweep, preferred) or eff1.csv | current efficiency vs ILOAD, annotated at ILOAD,max = 50 mA |
 | fig8a_stability_overall_loop | stb1.csv | overall loop gain & phase vs ILOAD (phase column was exported as 20·log10(\|phase\|); the script undoes it) |
 | fig8b_stability_fast_loop | f_stb1.csv | fast (FVF) loop gain & phase vs ILOAD |
+
+## Presentation figures
+
+`python scripts/slide_figures.py` writes slide versions to `figures/slide/` (PNG). Each one is
+sized to its slot on a 1920 × 1080 slide at 144 px/in, so every label is ≥ 16 pt on a
+13.33 in PowerPoint slide. Symbols are written without subscripts (VOUT, ILOAD) so no text
+falls below that size. The data handling is shared with `ldo_figures.py`.
